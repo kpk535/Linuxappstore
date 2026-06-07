@@ -28,5 +28,18 @@ public sealed class GitHubRepository
     [JsonPropertyName("forks_count")]
     public int Forks { get; set; }
 
+    [JsonPropertyName("owner")]
+    public GitHubOwner Owner { get; set; } = new();
+
     public string ZipUrl => HtmlUrl + "/archive/refs/heads/main.zip";
+    public string ScreenshotUrl => "https://opengraph.githubassets.com/store/" + FullName;
+}
+
+public sealed class GitHubOwner
+{
+    [JsonPropertyName("login")]
+    public string Login { get; set; } = string.Empty;
+
+    [JsonPropertyName("avatar_url")]
+    public string AvatarUrl { get; set; } = string.Empty;
 }
