@@ -1,72 +1,44 @@
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
-    <SolidColorBrush x:Key="StoreBackground" Color="#F5F5F5"/>
+    <SolidColorBrush x:Key="StoreBackground" Color="#F6F7FB"/>
     <SolidColorBrush x:Key="StoreSurface" Color="#FFFFFF"/>
     <SolidColorBrush x:Key="StoreSurfaceAlt" Color="#F9FAFB"/>
-    <SolidColorBrush x:Key="StoreBorder" Color="#E5E7EB"/>
-    <SolidColorBrush x:Key="StoreText" Color="#111827"/>
+    <SolidColorBrush x:Key="StoreBorder" Color="#E6E8EF"/>
+    <SolidColorBrush x:Key="StoreText" Color="#1F2937"/>
     <SolidColorBrush x:Key="StoreSubText" Color="#6B7280"/>
     <SolidColorBrush x:Key="StoreAccent" Color="#0067C0"/>
-    <SolidColorBrush x:Key="StoreAccentHover" Color="#005AA8"/>
+    <SolidColorBrush x:Key="StoreAccentHover" Color="#005FB8"/>
+    <SolidColorBrush x:Key="StoreSoftAccent" Color="#E8F2FF"/>
+
+    <DropShadowEffect x:Key="SoftShadow" Color="#22000000" BlurRadius="18" ShadowDepth="2" Opacity="0.25"/>
 
     <Style x:Key="SmoothButton" TargetType="Button">
         <Setter Property="Foreground" Value="White"/>
         <Setter Property="Background" Value="{StaticResource StoreAccent}"/>
         <Setter Property="BorderThickness" Value="0"/>
         <Setter Property="FontWeight" Value="SemiBold"/>
-        <Setter Property="Padding" Value="14,8"/>
+        <Setter Property="Padding" Value="16,9"/>
         <Setter Property="Margin" Value="4"/>
         <Setter Property="Cursor" Value="Hand"/>
-        <Setter Property="Template">
-            <Setter.Value>
-                <ControlTemplate TargetType="Button">
-                    <Border x:Name="Root" Background="{TemplateBinding Background}" CornerRadius="8" Padding="{TemplateBinding Padding}">
-                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                    </Border>
-                    <ControlTemplate.Triggers>
-                        <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="Root" Property="Background" Value="{StaticResource StoreAccentHover}"/>
-                        </Trigger>
-                        <Trigger Property="IsPressed" Value="True">
-                            <Setter TargetName="Root" Property="Opacity" Value="0.82"/>
-                        </Trigger>
-                        <Trigger Property="IsEnabled" Value="False">
-                            <Setter TargetName="Root" Property="Opacity" Value="0.45"/>
-                        </Trigger>
-                    </ControlTemplate.Triggers>
-                </ControlTemplate>
-            </Setter.Value>
-        </Setter>
+        <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="Button"><Border x:Name="Root" Background="{TemplateBinding Background}" CornerRadius="9" Padding="{TemplateBinding Padding}"><ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/></Border><ControlTemplate.Triggers><Trigger Property="IsMouseOver" Value="True"><Setter TargetName="Root" Property="Background" Value="{StaticResource StoreAccentHover}"/></Trigger><Trigger Property="IsPressed" Value="True"><Setter TargetName="Root" Property="Opacity" Value="0.78"/></Trigger><Trigger Property="IsEnabled" Value="False"><Setter TargetName="Root" Property="Opacity" Value="0.45"/></Trigger></ControlTemplate.Triggers></ControlTemplate></Setter.Value></Setter>
     </Style>
-
     <Style TargetType="Button" BasedOn="{StaticResource SmoothButton}"/>
 
+    <Style x:Key="NavButton" TargetType="Button" BasedOn="{StaticResource SmoothButton}">
+        <Setter Property="Background" Value="Transparent"/><Setter Property="Foreground" Value="{StaticResource StoreText}"/><Setter Property="HorizontalContentAlignment" Value="Left"/><Setter Property="Padding" Value="14,10"/>
+    </Style>
+
     <Style TargetType="TextBox">
-        <Setter Property="Margin" Value="4"/>
-        <Setter Property="Padding" Value="12"/>
-        <Setter Property="FontSize" Value="15"/>
-        <Setter Property="Background" Value="White"/>
-        <Setter Property="BorderBrush" Value="{StaticResource StoreBorder}"/>
-        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="Margin" Value="4"/><Setter Property="Padding" Value="13"/><Setter Property="FontSize" Value="15"/><Setter Property="Background" Value="White"/><Setter Property="BorderBrush" Value="{StaticResource StoreBorder}"/><Setter Property="BorderThickness" Value="1"/>
     </Style>
 
     <Style x:Key="StoreCard" TargetType="Border">
-        <Setter Property="Background" Value="{StaticResource StoreSurface}"/>
-        <Setter Property="BorderBrush" Value="{StaticResource StoreBorder}"/>
-        <Setter Property="BorderThickness" Value="1"/>
-        <Setter Property="CornerRadius" Value="16"/>
-        <Setter Property="Padding" Value="16"/>
-        <Setter Property="Margin" Value="0,0,12,12"/>
+        <Setter Property="Background" Value="{StaticResource StoreSurface}"/><Setter Property="BorderBrush" Value="{StaticResource StoreBorder}"/><Setter Property="BorderThickness" Value="1"/><Setter Property="CornerRadius" Value="18"/><Setter Property="Padding" Value="18"/><Setter Property="Margin" Value="0,0,14,14"/>
     </Style>
 
-    <Style TargetType="ListBox">
-        <Setter Property="BorderThickness" Value="0"/>
-        <Setter Property="Background" Value="Transparent"/>
-        <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled"/>
+    <Style x:Key="HeroCard" TargetType="Border" BasedOn="{StaticResource StoreCard}">
+        <Setter Property="Background" Value="{StaticResource StoreSoftAccent}"/><Setter Property="Padding" Value="28"/><Setter Property="Effect" Value="{StaticResource SoftShadow}"/>
     </Style>
 
-    <Style TargetType="ListBoxItem">
-        <Setter Property="Padding" Value="0"/>
-        <Setter Property="Margin" Value="0"/>
-        <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
-    </Style>
+    <Style TargetType="ListBox"><Setter Property="BorderThickness" Value="0"/><Setter Property="Background" Value="Transparent"/><Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled"/></Style>
+    <Style TargetType="ListBoxItem"><Setter Property="Padding" Value="0"/><Setter Property="Margin" Value="0"/><Setter Property="HorizontalContentAlignment" Value="Stretch"/><Setter Property="FocusVisualStyle" Value="{x:Null}"/></Style>
 </ResourceDictionary>
