@@ -1,28 +1,28 @@
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
-    <!-- Core palette -->
-    <SolidColorBrush x:Key="StoreBackground"    Color="#F3F4F8"/>
-    <SolidColorBrush x:Key="StoreSurface"       Color="#FFFFFF"/>
-    <SolidColorBrush x:Key="StoreSurfaceAlt"    Color="#F8F9FB"/>
-    <SolidColorBrush x:Key="StoreBorder"        Color="#E2E5EF"/>
-    <SolidColorBrush x:Key="StoreText"          Color="#1A1D27"/>
-    <SolidColorBrush x:Key="StoreSubText"       Color="#6B7280"/>
-    <SolidColorBrush x:Key="StoreAccent"        Color="#0067C0"/>
-    <SolidColorBrush x:Key="StoreAccentHover"   Color="#005BB0"/>
-    <SolidColorBrush x:Key="StoreAccentLight"   Color="#E3F0FF"/>
-    <SolidColorBrush x:Key="StoreSoftAccent"    Color="#E8F2FF"/>
-    <SolidColorBrush x:Key="StoreDanger"        Color="#D92D20"/>
-    <SolidColorBrush x:Key="StoreDangerHover"   Color="#B91C14"/>
-    <SolidColorBrush x:Key="StoreDangerLight"   Color="#FEE4E2"/>
-    <SolidColorBrush x:Key="StoreWarning"       Color="#D97706"/>
-    <SolidColorBrush x:Key="StoreWarningLight"  Color="#FEF3C7"/>
-    <SolidColorBrush x:Key="StoreSuccess"       Color="#059669"/>
-    <SolidColorBrush x:Key="StoreSuccessLight"  Color="#D1FAE5"/>
-    <SolidColorBrush x:Key="StoreSidebarBg"     Color="#F0F1F5"/>
+    <!-- Dark palette -->
+    <SolidColorBrush x:Key="StoreBackground"    Color="#111214"/>
+    <SolidColorBrush x:Key="StoreSurface"       Color="#1C1D22"/>
+    <SolidColorBrush x:Key="StoreSurfaceAlt"    Color="#242529"/>
+    <SolidColorBrush x:Key="StoreBorder"        Color="#2E3038"/>
+    <SolidColorBrush x:Key="StoreText"          Color="#F0F1F5"/>
+    <SolidColorBrush x:Key="StoreSubText"       Color="#9199A8"/>
+    <SolidColorBrush x:Key="StoreAccent"        Color="#4CA8F5"/>
+    <SolidColorBrush x:Key="StoreAccentHover"   Color="#6BBCFF"/>
+    <SolidColorBrush x:Key="StoreAccentLight"   Color="#152640"/>
+    <SolidColorBrush x:Key="StoreSoftAccent"    Color="#152230"/>
+    <SolidColorBrush x:Key="StoreDanger"        Color="#F04438"/>
+    <SolidColorBrush x:Key="StoreDangerHover"   Color="#D92D20"/>
+    <SolidColorBrush x:Key="StoreDangerLight"   Color="#3A1514"/>
+    <SolidColorBrush x:Key="StoreWarning"       Color="#F79009"/>
+    <SolidColorBrush x:Key="StoreWarningLight"  Color="#2D1D06"/>
+    <SolidColorBrush x:Key="StoreSuccess"       Color="#17B26A"/>
+    <SolidColorBrush x:Key="StoreSuccessLight"  Color="#082018"/>
+    <SolidColorBrush x:Key="StoreSidebarBg"     Color="#161719"/>
 
-    <DropShadowEffect x:Key="SoftShadow"  Color="#20000000" BlurRadius="20" ShadowDepth="2" Opacity="0.22"/>
-    <DropShadowEffect x:Key="CardShadow"  Color="#14000000" BlurRadius="10" ShadowDepth="1" Opacity="0.18"/>
+    <DropShadowEffect x:Key="SoftShadow"  Color="#60000000" BlurRadius="24" ShadowDepth="3" Opacity="0.55"/>
+    <DropShadowEffect x:Key="CardShadow"  Color="#40000000" BlurRadius="12" ShadowDepth="1" Opacity="0.40"/>
 
     <!-- Primary button -->
     <Style x:Key="PrimaryButton" TargetType="Button">
@@ -49,41 +49,33 @@
                             <Setter TargetName="Root" Property="Opacity" Value="0.80"/>
                         </Trigger>
                         <Trigger Property="IsEnabled" Value="False">
-                            <Setter TargetName="Root" Property="Opacity" Value="0.45"/>
+                            <Setter TargetName="Root" Property="Opacity" Value="0.40"/>
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
     </Style>
-
-    <!-- Default button = primary -->
     <Style TargetType="Button" BasedOn="{StaticResource PrimaryButton}"/>
 
-    <!-- Danger button -->
     <Style x:Key="DangerButton" TargetType="Button" BasedOn="{StaticResource PrimaryButton}">
         <Setter Property="Background" Value="{DynamicResource StoreDanger}"/>
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="Button">
-                    <Border x:Name="Root" Background="{TemplateBinding Background}"
-                            CornerRadius="8" Padding="{TemplateBinding Padding}">
+                    <Border x:Name="Root" Background="{TemplateBinding Background}" CornerRadius="8" Padding="{TemplateBinding Padding}">
                         <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
                             <Setter TargetName="Root" Property="Background" Value="{DynamicResource StoreDangerHover}"/>
                         </Trigger>
-                        <Trigger Property="IsPressed" Value="True">
-                            <Setter TargetName="Root" Property="Opacity" Value="0.80"/>
-                        </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
     </Style>
 
-    <!-- Ghost button -->
     <Style x:Key="GhostButton" TargetType="Button" BasedOn="{StaticResource PrimaryButton}">
         <Setter Property="Background"  Value="Transparent"/>
         <Setter Property="Foreground"  Value="{DynamicResource StoreAccent}"/>
@@ -99,16 +91,12 @@
                         <Trigger Property="IsMouseOver" Value="True">
                             <Setter TargetName="Root" Property="Background" Value="{DynamicResource StoreAccentLight}"/>
                         </Trigger>
-                        <Trigger Property="IsPressed" Value="True">
-                            <Setter TargetName="Root" Property="Opacity" Value="0.80"/>
-                        </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
     </Style>
 
-    <!-- Sidebar nav button -->
     <Style x:Key="NavButton" TargetType="Button" BasedOn="{StaticResource PrimaryButton}">
         <Setter Property="Background"               Value="Transparent"/>
         <Setter Property="Foreground"               Value="{DynamicResource StoreText}"/>
@@ -118,16 +106,12 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="Button">
-                    <Border x:Name="Root" Background="{TemplateBinding Background}"
-                            CornerRadius="10" Padding="{TemplateBinding Padding}">
+                    <Border x:Name="Root" Background="{TemplateBinding Background}" CornerRadius="10" Padding="{TemplateBinding Padding}">
                         <ContentPresenter HorizontalAlignment="Left" VerticalAlignment="Center"/>
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
                             <Setter TargetName="Root" Property="Background" Value="{DynamicResource StoreBorder}"/>
-                        </Trigger>
-                        <Trigger Property="IsPressed" Value="True">
-                            <Setter TargetName="Root" Property="Opacity" Value="0.80"/>
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
@@ -135,12 +119,11 @@
         </Setter>
     </Style>
 
-    <!-- TextBox -->
     <Style TargetType="TextBox">
         <Setter Property="Margin"           Value="3"/>
         <Setter Property="Padding"          Value="12,9"/>
         <Setter Property="FontSize"         Value="14"/>
-        <Setter Property="Background"       Value="{DynamicResource StoreSurface}"/>
+        <Setter Property="Background"       Value="{DynamicResource StoreSurfaceAlt}"/>
         <Setter Property="Foreground"       Value="{DynamicResource StoreText}"/>
         <Setter Property="BorderBrush"      Value="{DynamicResource StoreBorder}"/>
         <Setter Property="BorderThickness"  Value="1"/>
@@ -159,7 +142,6 @@
         </Setter>
     </Style>
 
-    <!-- ProgressBar -->
     <Style TargetType="ProgressBar">
         <Setter Property="Height"           Value="8"/>
         <Setter Property="Background"       Value="{DynamicResource StoreBorder}"/>
@@ -180,20 +162,17 @@
         </Setter>
     </Style>
 
-    <!-- ScrollBar minimal -->
     <Style TargetType="ScrollBar">
-        <Setter Property="Width"    Value="6"/>
-        <Setter Property="Margin"   Value="2,0,0,0"/>
+        <Setter Property="Width"      Value="6"/>
+        <Setter Property="Margin"     Value="2,0,0,0"/>
         <Setter Property="Background" Value="Transparent"/>
     </Style>
 
-    <!-- ListBox -->
     <Style TargetType="ListBox">
         <Setter Property="BorderThickness"  Value="0"/>
         <Setter Property="Background"       Value="Transparent"/>
         <Setter Property="Padding"          Value="0"/>
         <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled"/>
-        <Setter Property="ScrollViewer.VerticalScrollBarVisibility"   Value="Auto"/>
     </Style>
     <Style TargetType="ListBoxItem">
         <Setter Property="Padding"                  Value="0"/>
@@ -210,14 +189,12 @@
         </Setter>
     </Style>
 
-    <!-- Separator -->
     <Style TargetType="Separator">
         <Setter Property="Background"   Value="{DynamicResource StoreBorder}"/>
         <Setter Property="Margin"       Value="0,10"/>
         <Setter Property="Height"       Value="1"/>
     </Style>
 
-    <!-- Card border -->
     <Style x:Key="StoreCard" TargetType="Border">
         <Setter Property="Background"       Value="{DynamicResource StoreSurface}"/>
         <Setter Property="BorderBrush"      Value="{DynamicResource StoreBorder}"/>
@@ -228,7 +205,6 @@
         <Setter Property="Effect"           Value="{DynamicResource CardShadow}"/>
     </Style>
 
-    <!-- Hero card -->
     <Style x:Key="HeroCard" TargetType="Border" BasedOn="{StaticResource StoreCard}">
         <Setter Property="Background"   Value="{DynamicResource StoreSoftAccent}"/>
         <Setter Property="Padding"      Value="28"/>
@@ -236,30 +212,26 @@
         <Setter Property="Effect"       Value="{DynamicResource SoftShadow}"/>
     </Style>
 
-    <!-- Feature card (small, horizontal scroll) -->
     <Style x:Key="FeatureCard" TargetType="Border" BasedOn="{StaticResource StoreCard}">
         <Setter Property="Width"    Value="260"/>
         <Setter Property="Margin"   Value="0,0,12,0"/>
         <Setter Property="Padding"  Value="14"/>
     </Style>
 
-    <!-- Badge -->
     <Style x:Key="BadgePill" TargetType="Border">
         <Setter Property="Background"   Value="{DynamicResource StoreAccent}"/>
         <Setter Property="CornerRadius" Value="12"/>
         <Setter Property="Padding"      Value="7,3"/>
     </Style>
 
-    <!-- Update badge (orange) -->
     <Style x:Key="UpdateBadge" TargetType="Border">
-        <Setter Property="Background"   Value="{DynamicResource StoreWarning}"/>
-        <Setter Property="CornerRadius" Value="10"/>
-        <Setter Property="Padding"      Value="6,2"/>
+        <Setter Property="Background"        Value="{DynamicResource StoreWarning}"/>
+        <Setter Property="CornerRadius"      Value="10"/>
+        <Setter Property="Padding"           Value="6,2"/>
         <Setter Property="VerticalAlignment" Value="Center"/>
-        <Setter Property="Margin"       Value="6,0,0,0"/>
+        <Setter Property="Margin"            Value="6,0,0,0"/>
     </Style>
 
-    <!-- Section header text -->
     <Style x:Key="SectionHeader" TargetType="TextBlock">
         <Setter Property="Foreground"   Value="{DynamicResource StoreText}"/>
         <Setter Property="FontSize"     Value="20"/>
@@ -267,14 +239,13 @@
         <Setter Property="Margin"       Value="0,0,0,12"/>
     </Style>
 
-    <!-- StatusBar -->
     <Style TargetType="StatusBar">
-        <Setter Property="Background"   Value="{DynamicResource StoreSurface}"/>
-        <Setter Property="Foreground"   Value="{DynamicResource StoreSubText}"/>
-        <Setter Property="FontSize"     Value="12"/>
-        <Setter Property="Padding"      Value="16,4"/>
-        <Setter Property="BorderBrush"  Value="{DynamicResource StoreBorder}"/>
-        <Setter Property="BorderThickness" Value="0,1,0,0"/>
+        <Setter Property="Background"       Value="{DynamicResource StoreSurface}"/>
+        <Setter Property="Foreground"       Value="{DynamicResource StoreSubText}"/>
+        <Setter Property="FontSize"         Value="12"/>
+        <Setter Property="Padding"          Value="16,4"/>
+        <Setter Property="BorderBrush"      Value="{DynamicResource StoreBorder}"/>
+        <Setter Property="BorderThickness"  Value="0,1,0,0"/>
     </Style>
 
 </ResourceDictionary>

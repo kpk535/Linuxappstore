@@ -1,1 +1,1026 @@
-<Window x:Class="WindowsGitHubAppStore.MainWindow" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Title="GitHub Store" Height="860" Width="1500" Background="{StaticResource StoreBackground}"><DockPanel><StatusBar DockPanel.Dock="Bottom" Background="{StaticResource StoreSurface}" Foreground="{StaticResource StoreSubText}"><TextBlock Text="{Binding StatusText}"/></StatusBar><Border DockPanel.Dock="Left" Width="225" Background="{StaticResource StoreSurface}" BorderBrush="{StaticResource StoreBorder}" BorderThickness="0,0,1,0"><StackPanel Margin="16"><TextBlock Text="GitHub Store" Foreground="{StaticResource StoreText}" FontSize="26" FontWeight="Bold" Margin="0,10,0,24"/><Button Style="{StaticResource NavButton}" Content="Home" Command="{Binding CategoryCommand}" CommandParameter="windows app"/><Button Style="{StaticResource NavButton}" Content="AI" Command="{Binding CategoryCommand}" CommandParameter="artificial intelligence app"/><Button Style="{StaticResource NavButton}" Content="Games" Command="{Binding CategoryCommand}" CommandParameter="game engine windows"/><Button Style="{StaticResource NavButton}" Content="Editors" Command="{Binding CategoryCommand}" CommandParameter="text editor app"/><Button Style="{StaticResource NavButton}" Content="Browsers" Command="{Binding CategoryCommand}" CommandParameter="web browser app"/><Button Style="{StaticResource NavButton}" Content="Terminals" Command="{Binding CategoryCommand}" CommandParameter="terminal emulator"/><Button Style="{StaticResource NavButton}" Content="Developer Tools" Command="{Binding CategoryCommand}" CommandParameter="developer tool"/><Separator Margin="0,20"/><TextBlock Text="Account" Foreground="{StaticResource StoreSubText}" FontWeight="Bold" Margin="4,0,0,6"/><TextBox Text="{Binding TokenText}" ToolTip="GitHub token"/><Button Content="Save Token" Command="{Binding SaveTokenCommand}"/><Button Content="Check Updates" Command="{Binding CheckUpdatesCommand}"/><Button Content="Installed Apps" Command="{Binding LoadInstalledCommand}"/></StackPanel></Border><Grid Margin="24"><Grid.ColumnDefinitions><ColumnDefinition Width="3*"/><ColumnDefinition Width="1.15*"/></Grid.ColumnDefinitions><Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="220"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions><Border Style="{StaticResource HeroCard}" Grid.ColumnSpan="2"><Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions><StackPanel><TextBlock Text="Discover Windows apps from GitHub" Foreground="{StaticResource StoreText}" FontSize="38" FontWeight="Bold"/><TextBlock Text="Search open-source apps, download releases, install packages, and track updates in one clean store." Foreground="{StaticResource StoreSubText}" FontSize="16" Margin="0,8,0,18"/><StackPanel Orientation="Horizontal"><TextBox Width="620" Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"/><Button Content="Search" Command="{Binding SearchCommand}"/></StackPanel></StackPanel><TextBlock Grid.Column="1" Text="★" Foreground="{StaticResource StoreAccent}" FontSize="96" VerticalAlignment="Center" Margin="24,0"/></Grid></Border><StackPanel Grid.Row="1" Grid.ColumnSpan="2"><TextBlock Text="Featured apps" Foreground="{StaticResource StoreText}" FontSize="22" FontWeight="Bold" Margin="0,0,0,8"/><ListBox ItemsSource="{Binding FeaturedApps}" ScrollViewer.HorizontalScrollBarVisibility="Auto"><ListBox.ItemsPanel><ItemsPanelTemplate><StackPanel Orientation="Horizontal"/></ItemsPanelTemplate></ListBox.ItemsPanel><ListBox.ItemTemplate><DataTemplate><Border Style="{StaticResource StoreCard}" Width="305" Height="160"><StackPanel><StackPanel Orientation="Horizontal"><Image Source="{Binding Owner.AvatarUrl}" Width="44" Height="44"/><StackPanel Margin="10,0,0,0"><TextBlock Text="{Binding Name}" FontSize="18" FontWeight="Bold" Foreground="{StaticResource StoreText}"/><TextBlock Text="{Binding Owner.Login}" Foreground="{StaticResource StoreSubText}"/></StackPanel></StackPanel><TextBlock Text="{Binding Description}" Foreground="{StaticResource StoreSubText}" TextWrapping="Wrap" Height="42" Margin="0,10,0,6"/><Button Content="Get" Command="{Binding DataContext.InstallCommand, RelativeSource={RelativeSource AncestorType=ListBox}}" CommandParameter="{Binding}" HorizontalAlignment="Left"/></StackPanel></Border></DataTemplate></ListBox.ItemTemplate></ListBox></StackPanel><StackPanel Grid.Row="2" Grid.Column="0"><TextBlock Text="Apps" Foreground="{StaticResource StoreText}" FontSize="22" FontWeight="Bold" Margin="0,0,0,8"/><ListBox ItemsSource="{Binding Repositories}"><ListBox.ItemTemplate><DataTemplate><Border Style="{StaticResource StoreCard}"><Grid><Grid.ColumnDefinitions><ColumnDefinition Width="82"/><ColumnDefinition Width="*"/><ColumnDefinition Width="220"/></Grid.ColumnDefinitions><Image Source="{Binding Owner.AvatarUrl}" Width="64" Height="64"/><StackPanel Grid.Column="1" Margin="8,0,14,0"><TextBlock Text="{Binding FullName}" Foreground="{StaticResource StoreText}" FontSize="20" FontWeight="Bold"/><TextBlock Text="{Binding Description}" Foreground="{StaticResource StoreSubText}" TextWrapping="Wrap"/><Border Height="82" CornerRadius="12" Margin="0,10,0,8" Background="{StaticResource StoreSoftAccent}"><Image Source="{Binding ScreenshotUrl}" Stretch="UniformToFill"/></Border><StackPanel Orientation="Horizontal"><TextBlock Text="Language " Foreground="{StaticResource StoreSubText}"/><TextBlock Text="{Binding Language}" FontWeight="Bold" Margin="0,0,18,0"/><TextBlock Text="★ " Foreground="{StaticResource StoreSubText}"/><TextBlock Text="{Binding Stars}" FontWeight="Bold" Margin="0,0,18,0"/><TextBlock Text="Forks " Foreground="{StaticResource StoreSubText}"/><TextBlock Text="{Binding Forks}" FontWeight="Bold"/></StackPanel></StackPanel><StackPanel Grid.Column="2" VerticalAlignment="Center"><Button Content="Get" Command="{Binding DataContext.InstallCommand, RelativeSource={RelativeSource AncestorType=ListBox}}" CommandParameter="{Binding}"/><Button Content="Download" Command="{Binding DataContext.DownloadCommand, RelativeSource={RelativeSource AncestorType=ListBox}}" CommandParameter="{Binding}"/><Button Content="Open" Command="{Binding DataContext.OpenCommand, RelativeSource={RelativeSource AncestorType=ListBox}}" CommandParameter="{Binding}"/><Button Content="Copy Clone" Command="{Binding DataContext.CopyCloneCommand, RelativeSource={RelativeSource AncestorType=ListBox}}" CommandParameter="{Binding}"/></StackPanel></Grid></Border></DataTemplate></ListBox.ItemTemplate></ListBox></StackPanel><Border Grid.Row="2" Grid.Column="1" Style="{StaticResource StoreCard}"><StackPanel><TextBlock Text="Installed apps" Foreground="{StaticResource StoreText}" FontSize="22" FontWeight="Bold"/><TextBlock Text="Your local app library" Foreground="{StaticResource StoreSubText}" Margin="0,0,0,10"/><ListBox ItemsSource="{Binding InstalledApps}"><ListBox.ItemTemplate><DataTemplate><Border Background="{StaticResource StoreSurfaceAlt}" CornerRadius="12" Padding="10" Margin="0,0,0,8"><StackPanel><TextBlock Text="{Binding FullName}" Foreground="{StaticResource StoreText}" FontWeight="Bold"/><TextBlock Text="{Binding Version}" Foreground="{StaticResource StoreAccent}"/><TextBlock Text="{Binding InstallPath}" Foreground="{StaticResource StoreSubText}" TextWrapping="Wrap" FontSize="11"/></StackPanel></Border></DataTemplate></ListBox.ItemTemplate></ListBox></StackPanel></Border><StackPanel Grid.Row="3" Grid.Column="0" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,12,0,0"><Button Content="Previous" Command="{Binding PreviousPageCommand}"/><Border Background="{StaticResource StoreSurface}" CornerRadius="10" Padding="18,8" Margin="8"><TextBlock Text="{Binding CurrentPage}" Foreground="{StaticResource StoreText}" FontSize="18" FontWeight="Bold"/></Border><Button Content="Next" Command="{Binding NextPageCommand}"/></StackPanel></Grid></DockPanel></Window>
+<Window x:Class="WindowsGitHubAppStore.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="GitHub App Store"
+        Height="900" Width="1400" MinHeight="700" MinWidth="1100"
+        Background="{DynamicResource StoreBackground}"
+        WindowStartupLocation="CenterScreen">
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- ═══ Main layout (sidebar + content) ═══ -->
+        <Grid Grid.Row="0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="230"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- ═══ SIDEBAR ═══ -->
+            <Border Grid.Column="0"
+                    Background="{DynamicResource StoreSidebarBg}"
+                    BorderBrush="{DynamicResource StoreBorder}"
+                    BorderThickness="0,0,1,0">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- Logo -->
+                    <StackPanel Grid.Row="0" Margin="20,20,20,12">
+                        <TextBlock Text="GitHub Store"
+                                   Foreground="{DynamicResource StoreText}"
+                                   FontSize="22" FontWeight="Bold"/>
+                        <TextBlock Text="Open-source app catalog"
+                                   Foreground="{DynamicResource StoreSubText}"
+                                   FontSize="11" Margin="0,2,0,0"/>
+                    </StackPanel>
+
+                    <!-- Nav items -->
+                    <StackPanel Grid.Row="1" Margin="12,0">
+
+                        <!-- Home -->
+                        <Button Command="{Binding NavigateCommand}" CommandParameter="Home" HorizontalContentAlignment="Stretch">
+                            <Button.Style>
+                                <Style TargetType="Button" BasedOn="{StaticResource NavButton}">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsHomePage}" Value="True">
+                                            <Setter Property="Background" Value="{DynamicResource StoreAccentLight}"/>
+                                            <Setter Property="Foreground" Value="{DynamicResource StoreAccent}"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Button.Style>
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="⌂" FontSize="15" Width="22"/>
+                                <TextBlock Text="Home" FontSize="14"/>
+                            </StackPanel>
+                        </Button>
+
+                        <!-- Library -->
+                        <Button Command="{Binding NavigateCommand}" CommandParameter="Library" HorizontalContentAlignment="Stretch">
+                            <Button.Style>
+                                <Style TargetType="Button" BasedOn="{StaticResource NavButton}">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsLibraryPage}" Value="True">
+                                            <Setter Property="Background" Value="{DynamicResource StoreAccentLight}"/>
+                                            <Setter Property="Foreground" Value="{DynamicResource StoreAccent}"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Button.Style>
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="📦" FontSize="13" Width="22"/>
+                                <TextBlock Text="Library" FontSize="14"/>
+                            </StackPanel>
+                        </Button>
+
+                        <!-- Updates with badge -->
+                        <Button Command="{Binding NavigateCommand}" CommandParameter="Updates" HorizontalContentAlignment="Stretch">
+                            <Button.Style>
+                                <Style TargetType="Button" BasedOn="{StaticResource NavButton}">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsUpdatesPage}" Value="True">
+                                            <Setter Property="Background" Value="{DynamicResource StoreAccentLight}"/>
+                                            <Setter Property="Foreground" Value="{DynamicResource StoreAccent}"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Button.Style>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="↑" FontSize="15" Width="22"/>
+                                    <TextBlock Text="Updates" FontSize="14"/>
+                                </StackPanel>
+                                <Border Grid.Column="1" Style="{StaticResource UpdateBadge}"
+                                        Visibility="{Binding HasPendingUpdates, Converter={StaticResource BoolToVis}}">
+                                    <TextBlock Text="{Binding UpdateCountText}"
+                                               Foreground="White" FontSize="11" FontWeight="Bold"/>
+                                </Border>
+                            </Grid>
+                        </Button>
+
+                        <!-- Cleaner -->
+                        <Button Command="{Binding NavigateCommand}" CommandParameter="Cleaner" HorizontalContentAlignment="Stretch">
+                            <Button.Style>
+                                <Style TargetType="Button" BasedOn="{StaticResource NavButton}">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsCleanerPage}" Value="True">
+                                            <Setter Property="Background" Value="{DynamicResource StoreAccentLight}"/>
+                                            <Setter Property="Foreground" Value="{DynamicResource StoreAccent}"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Button.Style>
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="✦" FontSize="14" Width="22"/>
+                                <TextBlock Text="Cleaner" FontSize="14"/>
+                            </StackPanel>
+                        </Button>
+
+                        <Separator Margin="0,14"/>
+
+                        <!-- Categories -->
+                        <TextBlock Text="BROWSE" Foreground="{DynamicResource StoreSubText}"
+                                   FontSize="10" FontWeight="Bold" Margin="14,0,0,8"/>
+
+                        <Button Style="{StaticResource NavButton}" Command="{Binding CategoryCommand}" CommandParameter="AI machine learning app">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="🤖" FontSize="13" Width="22"/>
+                                <TextBlock Text="AI &amp; ML" FontSize="13"/>
+                            </StackPanel>
+                        </Button>
+                        <Button Style="{StaticResource NavButton}" Command="{Binding CategoryCommand}" CommandParameter="game windows app">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="🎮" FontSize="13" Width="22"/>
+                                <TextBlock Text="Games" FontSize="13"/>
+                            </StackPanel>
+                        </Button>
+                        <Button Style="{StaticResource NavButton}" Command="{Binding CategoryCommand}" CommandParameter="text editor IDE">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="✏" FontSize="13" Width="22"/>
+                                <TextBlock Text="Editors" FontSize="13"/>
+                            </StackPanel>
+                        </Button>
+                        <Button Style="{StaticResource NavButton}" Command="{Binding CategoryCommand}" CommandParameter="web browser chromium">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="🌐" FontSize="13" Width="22"/>
+                                <TextBlock Text="Browsers" FontSize="13"/>
+                            </StackPanel>
+                        </Button>
+                        <Button Style="{StaticResource NavButton}" Command="{Binding CategoryCommand}" CommandParameter="terminal emulator windows">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="▶" FontSize="12" Width="22"/>
+                                <TextBlock Text="Terminals" FontSize="13"/>
+                            </StackPanel>
+                        </Button>
+                        <Button Style="{StaticResource NavButton}" Command="{Binding CategoryCommand}" CommandParameter="developer tool CLI windows">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="🔧" FontSize="13" Width="22"/>
+                                <TextBlock Text="Dev Tools" FontSize="13"/>
+                            </StackPanel>
+                        </Button>
+                        <Button Style="{StaticResource NavButton}" Command="{Binding CategoryCommand}" CommandParameter="multimedia video audio windows">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="🎵" FontSize="13" Width="22"/>
+                                <TextBlock Text="Media" FontSize="13"/>
+                            </StackPanel>
+                        </Button>
+                    </StackPanel>
+
+                    <!-- Account section -->
+                    <StackPanel Grid.Row="2" Margin="12,0,12,16">
+                        <Separator Margin="0,0,0,10"/>
+                        <TextBlock Text="ACCOUNT" Foreground="{DynamicResource StoreSubText}"
+                                   FontSize="10" FontWeight="Bold" Margin="4,0,0,8"/>
+                        <TextBox Text="{Binding TokenText, UpdateSourceTrigger=PropertyChanged}"
+                                 FontSize="12" Padding="10,7"/>
+                        <Button Content="Save Token" Command="{Binding SaveTokenCommand}" Margin="0,4,0,0">
+                            <Button.Style>
+                                <Style TargetType="Button" BasedOn="{StaticResource GhostButton}">
+                                    <Setter Property="FontSize" Value="12"/>
+                                    <Setter Property="Padding" Value="10,7"/>
+                                </Style>
+                            </Button.Style>
+                        </Button>
+                        <!-- Theme toggle -->
+                        <Button Command="{Binding ToggleThemeCommand}" Margin="0,4,0,0">
+                            <Button.Style>
+                                <Style TargetType="Button" BasedOn="{StaticResource NavButton}">
+                                    <Setter Property="Padding" Value="10,7"/>
+                                    <Setter Property="Margin" Value="0"/>
+                                </Style>
+                            </Button.Style>
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock FontSize="14" Width="22">
+                                    <TextBlock.Style>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="Text" Value="☀"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsDarkMode}" Value="True">
+                                                    <Setter Property="Text" Value="🌙"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBlock.Style>
+                                </TextBlock>
+                                <TextBlock FontSize="13">
+                                    <TextBlock.Style>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="Text" Value="Light Mode"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsDarkMode}" Value="True">
+                                                    <Setter Property="Text" Value="Dark Mode"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBlock.Style>
+                                </TextBlock>
+                            </StackPanel>
+                        </Button>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <!-- ═══ CONTENT AREA ═══ -->
+            <Grid Grid.Column="1">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="62"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <!-- Header bar with search -->
+                <Border Grid.Row="0"
+                        Background="{DynamicResource StoreSurface}"
+                        BorderBrush="{DynamicResource StoreBorder}"
+                        BorderThickness="0,0,0,1">
+                    <Grid Margin="20,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid Grid.Column="0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBox Grid.Column="0"
+                                     Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
+                                     VerticalAlignment="Center" Margin="0,0,8,0">
+                                <TextBox.InputBindings>
+                                    <KeyBinding Key="Enter" Command="{Binding SearchCommand}"/>
+                                </TextBox.InputBindings>
+                            </TextBox>
+                            <Button Grid.Column="1" Content="Search"
+                                    Command="{Binding SearchCommand}"
+                                    VerticalAlignment="Center"/>
+                        </Grid>
+                        <!-- Loading indicator -->
+                        <TextBlock Grid.Column="1" Text="⟳ Loading..."
+                                   Foreground="{DynamicResource StoreAccent}"
+                                   FontSize="13" VerticalAlignment="Center" Margin="16,0,0,0"
+                                   Visibility="{Binding IsLoading, Converter={StaticResource BoolToVis}}"/>
+                    </Grid>
+                </Border>
+
+                <!-- Pages container -->
+                <Grid Grid.Row="1" Background="{DynamicResource StoreBackground}">
+
+                    <!-- ── HOME PAGE ── -->
+                    <ScrollViewer Visibility="{Binding IsHomePage, Converter={StaticResource BoolToVis}}"
+                                  Padding="24,20,24,20">
+                        <StackPanel>
+                            <!-- Hero -->
+                            <Border Style="{StaticResource HeroCard}">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel>
+                                        <TextBlock Text="Discover apps from GitHub"
+                                                   Foreground="{DynamicResource StoreText}"
+                                                   FontSize="32" FontWeight="Bold" TextWrapping="Wrap"/>
+                                        <TextBlock Text="Search open-source Windows apps, download releases, install packages, and track updates — all in one place."
+                                                   Foreground="{DynamicResource StoreSubText}"
+                                                   FontSize="14" Margin="0,8,0,0" TextWrapping="Wrap"/>
+                                    </StackPanel>
+                                    <TextBlock Grid.Column="1" Text="★"
+                                               Foreground="{DynamicResource StoreAccent}"
+                                               FontSize="80" VerticalAlignment="Center" Margin="24,0,0,0"
+                                               Opacity="0.35"/>
+                                </Grid>
+                            </Border>
+
+                            <!-- Featured strip -->
+                            <TextBlock Text="Featured" Style="{StaticResource SectionHeader}"/>
+                            <ListBox ItemsSource="{Binding FeaturedApps}"
+                                     ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                                     ScrollViewer.VerticalScrollBarVisibility="Disabled"
+                                     Margin="0,0,0,20">
+                                <ListBox.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <StackPanel Orientation="Horizontal"/>
+                                    </ItemsPanelTemplate>
+                                </ListBox.ItemsPanel>
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border Style="{StaticResource FeatureCard}">
+                                            <StackPanel>
+                                                <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                                                    <Border Width="38" Height="38" CornerRadius="8"
+                                                            Background="{DynamicResource StoreSoftAccent}">
+                                                        <Image Source="{Binding Owner.AvatarUrl}"
+                                                               Width="34" Height="34"
+                                                               RenderOptions.BitmapScalingMode="HighQuality"/>
+                                                    </Border>
+                                                    <StackPanel Margin="10,0,0,0" VerticalAlignment="Center">
+                                                        <TextBlock Text="{Binding Name}"
+                                                                   FontSize="14" FontWeight="Bold"
+                                                                   Foreground="{DynamicResource StoreText}"/>
+                                                        <TextBlock Text="{Binding Owner.Login}"
+                                                                   FontSize="11"
+                                                                   Foreground="{DynamicResource StoreSubText}"/>
+                                                    </StackPanel>
+                                                </StackPanel>
+                                                <TextBlock Text="{Binding Description}"
+                                                           Foreground="{DynamicResource StoreSubText}"
+                                                           FontSize="12" TextWrapping="Wrap"
+                                                           MaxHeight="42" Margin="0,0,0,10"/>
+                                                <StackPanel Orientation="Horizontal">
+                                                    <TextBlock Text="★ " Foreground="{DynamicResource StoreWarning}" FontSize="11"/>
+                                                    <TextBlock Text="{Binding Stars, StringFormat={}{0:N0}}"
+                                                               Foreground="{DynamicResource StoreSubText}" FontSize="11"/>
+                                                </StackPanel>
+                                                <Button Content="Get"
+                                                        Command="{Binding DataContext.InstallCommand, RelativeSource={RelativeSource AncestorType=ListBox}}"
+                                                        CommandParameter="{Binding}"
+                                                        HorizontalAlignment="Left" Margin="0,8,0,0">
+                                                    <Button.Style>
+                                                        <Style TargetType="Button" BasedOn="{StaticResource PrimaryButton}">
+                                                            <Setter Property="FontSize" Value="12"/>
+                                                            <Setter Property="Padding" Value="14,6"/>
+                                                        </Style>
+                                                    </Button.Style>
+                                                </Button>
+                                            </StackPanel>
+                                        </Border>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
+
+                            <!-- Search results -->
+                            <Grid Margin="0,0,0,12">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Text="Results" Style="{StaticResource SectionHeader}" Margin="0"/>
+                                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                                    <Button Content="◄" Command="{Binding PreviousPageCommand}" Style="{StaticResource GhostButton}">
+                                        <Button.Style>
+                                            <Style TargetType="Button" BasedOn="{StaticResource GhostButton}">
+                                                <Setter Property="Padding" Value="10,6"/>
+                                            </Style>
+                                        </Button.Style>
+                                    </Button>
+                                    <Border Background="{DynamicResource StoreSurface}"
+                                            BorderBrush="{DynamicResource StoreBorder}"
+                                            BorderThickness="1" CornerRadius="8" Padding="14,6" Margin="4,0">
+                                        <TextBlock Text="{Binding SearchPage}"
+                                                   Foreground="{DynamicResource StoreText}"
+                                                   FontWeight="Bold" FontSize="14"/>
+                                    </Border>
+                                    <Button Content="►" Command="{Binding NextPageCommand}">
+                                        <Button.Style>
+                                            <Style TargetType="Button" BasedOn="{StaticResource PrimaryButton}">
+                                                <Setter Property="Padding" Value="10,6"/>
+                                            </Style>
+                                        </Button.Style>
+                                    </Button>
+                                </StackPanel>
+                            </Grid>
+
+                            <ListBox ItemsSource="{Binding Repositories}">
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border Style="{StaticResource StoreCard}">
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="56"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+
+                                                <Border Width="48" Height="48" CornerRadius="10"
+                                                        Background="{DynamicResource StoreSoftAccent}"
+                                                        VerticalAlignment="Top">
+                                                    <Image Source="{Binding Owner.AvatarUrl}" Width="44" Height="44"
+                                                           RenderOptions.BitmapScalingMode="HighQuality"/>
+                                                </Border>
+
+                                                <StackPanel Grid.Column="1" Margin="12,0,16,0">
+                                                    <TextBlock Text="{Binding FullName}"
+                                                               Foreground="{DynamicResource StoreText}"
+                                                               FontSize="16" FontWeight="Bold"/>
+                                                    <TextBlock Text="{Binding Description}"
+                                                               Foreground="{DynamicResource StoreSubText}"
+                                                               FontSize="13" TextWrapping="Wrap"
+                                                               Margin="0,3,0,8"/>
+                                                    <StackPanel Orientation="Horizontal">
+                                                        <Border Background="{DynamicResource StoreSurfaceAlt}"
+                                                                BorderBrush="{DynamicResource StoreBorder}"
+                                                                BorderThickness="1" CornerRadius="6" Padding="8,3" Margin="0,0,6,0">
+                                                            <TextBlock Text="{Binding Language}"
+                                                                       Foreground="{DynamicResource StoreSubText}"
+                                                                       FontSize="11"/>
+                                                        </Border>
+                                                        <Border Background="{DynamicResource StoreSurfaceAlt}"
+                                                                BorderBrush="{DynamicResource StoreBorder}"
+                                                                BorderThickness="1" CornerRadius="6" Padding="8,3" Margin="0,0,6,0">
+                                                            <StackPanel Orientation="Horizontal">
+                                                                <TextBlock Text="★ " Foreground="{DynamicResource StoreWarning}" FontSize="11"/>
+                                                                <TextBlock Text="{Binding Stars, StringFormat={}{0:N0}}"
+                                                                           Foreground="{DynamicResource StoreSubText}" FontSize="11"/>
+                                                            </StackPanel>
+                                                        </Border>
+                                                        <Border Background="{DynamicResource StoreSurfaceAlt}"
+                                                                BorderBrush="{DynamicResource StoreBorder}"
+                                                                BorderThickness="1" CornerRadius="6" Padding="8,3">
+                                                            <StackPanel Orientation="Horizontal">
+                                                                <TextBlock Text="⑂ " Foreground="{DynamicResource StoreSubText}" FontSize="11"/>
+                                                                <TextBlock Text="{Binding Forks, StringFormat={}{0:N0}}"
+                                                                           Foreground="{DynamicResource StoreSubText}" FontSize="11"/>
+                                                            </StackPanel>
+                                                        </Border>
+                                                    </StackPanel>
+                                                </StackPanel>
+
+                                                <StackPanel Grid.Column="2" VerticalAlignment="Center" MinWidth="120">
+                                                    <Button Content="Get"
+                                                            Command="{Binding DataContext.InstallCommand, RelativeSource={RelativeSource AncestorType=ListBox}}"
+                                                            CommandParameter="{Binding}"/>
+                                                    <Button Content="Details"
+                                                            Style="{StaticResource GhostButton}"
+                                                            Command="{Binding DataContext.ShowDetailCommand, RelativeSource={RelativeSource AncestorType=ListBox}}"
+                                                            CommandParameter="{Binding}"/>
+                                                    <Button Content="GitHub"
+                                                            Style="{StaticResource GhostButton}"
+                                                            Command="{Binding DataContext.OpenCommand, RelativeSource={RelativeSource AncestorType=ListBox}}"
+                                                            CommandParameter="{Binding}"/>
+                                                </StackPanel>
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
+                        </StackPanel>
+                    </ScrollViewer>
+
+                    <!-- ── LIBRARY PAGE ── -->
+                    <Grid Visibility="{Binding IsLibraryPage, Converter={StaticResource BoolToVis}}">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+
+                        <!-- Library header -->
+                        <Border Grid.Row="0" Background="{DynamicResource StoreSurface}"
+                                BorderBrush="{DynamicResource StoreBorder}" BorderThickness="0,0,0,1"
+                                Padding="24,14">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel>
+                                    <TextBlock Text="Library" Style="{StaticResource SectionHeader}" Margin="0"/>
+                                    <TextBlock Foreground="{DynamicResource StoreSubText}" FontSize="13">
+                                        <TextBlock.Text>
+                                            <Binding Path="InstalledApps.Count" StringFormat="{}{0} installed app(s)"/>
+                                        </TextBlock.Text>
+                                    </TextBlock>
+                                </StackPanel>
+                                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                                    <Button Content="Check Updates" Command="{Binding CheckUpdatesCommand}" Margin="0,0,8,0"/>
+                                    <Button Content="Refresh" Style="{StaticResource GhostButton}"
+                                            Command="{Binding LoadInstalledCommand}"/>
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+
+                        <ScrollViewer Grid.Row="1" Padding="24,16">
+                            <!-- Empty state -->
+                            <StackPanel>
+                                <Border Style="{StaticResource StoreCard}"
+                                        Visibility="{Binding HasNoInstalledApps, Converter={StaticResource BoolToVis}}">
+                                    <StackPanel HorizontalAlignment="Center" Margin="0,20">
+                                        <TextBlock Text="📦" FontSize="48" HorizontalAlignment="Center"/>
+                                        <TextBlock Text="No apps installed yet"
+                                                   Foreground="{DynamicResource StoreSubText}"
+                                                   FontSize="16" HorizontalAlignment="Center" Margin="0,12,0,4"/>
+                                        <TextBlock Text="Search for apps on the Home page and click Get to add them here."
+                                                   Foreground="{DynamicResource StoreSubText}"
+                                                   FontSize="13" HorizontalAlignment="Center" TextWrapping="Wrap"/>
+                                    </StackPanel>
+                                </Border>
+
+                                <ListBox ItemsSource="{Binding InstalledApps}">
+                                    <ListBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border Style="{StaticResource StoreCard}">
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="52"/>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                    </Grid.ColumnDefinitions>
+
+                                                    <Border Width="44" Height="44" CornerRadius="10"
+                                                            Background="{DynamicResource StoreSoftAccent}"
+                                                            VerticalAlignment="Top">
+                                                        <Image Source="{Binding AvatarUrl}" Width="40" Height="40"
+                                                               RenderOptions.BitmapScalingMode="HighQuality"/>
+                                                    </Border>
+
+                                                    <StackPanel Grid.Column="1" Margin="12,0,16,0">
+                                                        <StackPanel Orientation="Horizontal">
+                                                            <TextBlock Text="{Binding FullName}"
+                                                                       Foreground="{DynamicResource StoreText}"
+                                                                       FontSize="15" FontWeight="Bold"/>
+                                                            <!-- Update available badge -->
+                                                            <Border Background="{DynamicResource StoreWarningLight}"
+                                                                    BorderBrush="{DynamicResource StoreWarning}"
+                                                                    BorderThickness="1" CornerRadius="8"
+                                                                    Padding="8,2" Margin="10,0,0,0"
+                                                                    VerticalAlignment="Center"
+                                                                    Visibility="{Binding HasUpdate, Converter={StaticResource BoolToVis}}">
+                                                                <TextBlock Text="Update available"
+                                                                           Foreground="{DynamicResource StoreWarning}"
+                                                                           FontSize="11" FontWeight="SemiBold"/>
+                                                            </Border>
+                                                        </StackPanel>
+                                                        <TextBlock Text="{Binding Description}"
+                                                                   Foreground="{DynamicResource StoreSubText}"
+                                                                   FontSize="12" TextWrapping="Wrap" Margin="0,3,0,6"/>
+                                                        <StackPanel Orientation="Horizontal">
+                                                            <Border Background="{DynamicResource StoreSurfaceAlt}"
+                                                                    BorderBrush="{DynamicResource StoreBorder}"
+                                                                    BorderThickness="1" CornerRadius="6" Padding="8,3" Margin="0,0,6,0">
+                                                                <StackPanel Orientation="Horizontal">
+                                                                    <TextBlock Text="v" Foreground="{DynamicResource StoreSubText}" FontSize="11"/>
+                                                                    <TextBlock Text="{Binding Version}"
+                                                                               Foreground="{DynamicResource StoreAccent}"
+                                                                               FontSize="11" FontWeight="Bold"/>
+                                                                </StackPanel>
+                                                            </Border>
+                                                            <Border Background="{DynamicResource StoreSurfaceAlt}"
+                                                                    BorderBrush="{DynamicResource StoreBorder}"
+                                                                    BorderThickness="1" CornerRadius="6" Padding="8,3">
+                                                                <TextBlock Text="{Binding InstalledAt, StringFormat='Installed {0:MMM d, yyyy}'}"
+                                                                           Foreground="{DynamicResource StoreSubText}" FontSize="11"/>
+                                                            </Border>
+                                                        </StackPanel>
+                                                        <TextBlock Text="{Binding InstallPath}"
+                                                                   Foreground="{DynamicResource StoreSubText}"
+                                                                   FontSize="10" Margin="0,4,0,0"
+                                                                   TextTrimming="CharacterEllipsis" Opacity="0.6"/>
+                                                    </StackPanel>
+
+                                                    <StackPanel Grid.Column="2" VerticalAlignment="Center" MinWidth="110">
+                                                        <Button Content="Open GitHub"
+                                                                Style="{StaticResource GhostButton}"
+                                                                Command="{Binding DataContext.OpenCommand, RelativeSource={RelativeSource AncestorType=ListBox}}"
+                                                                CommandParameter="{Binding}">
+                                                            <Button.Style>
+                                                                <Style TargetType="Button" BasedOn="{StaticResource GhostButton}">
+                                                                    <Setter Property="FontSize" Value="12"/>
+                                                                    <Setter Property="Padding" Value="10,6"/>
+                                                                </Style>
+                                                            </Button.Style>
+                                                        </Button>
+                                                        <Button Content="Upgrade"
+                                                                Command="{Binding DataContext.UpgradeCommand, RelativeSource={RelativeSource AncestorType=ListBox}}"
+                                                                CommandParameter="{Binding}"
+                                                                Visibility="{Binding HasUpdate, Converter={StaticResource BoolToVis}}">
+                                                            <Button.Style>
+                                                                <Style TargetType="Button" BasedOn="{StaticResource PrimaryButton}">
+                                                                    <Setter Property="FontSize" Value="12"/>
+                                                                    <Setter Property="Padding" Value="10,6"/>
+                                                                </Style>
+                                                            </Button.Style>
+                                                        </Button>
+                                                        <Button Content="Remove"
+                                                                Style="{StaticResource DangerButton}"
+                                                                Command="{Binding DataContext.RemoveCommand, RelativeSource={RelativeSource AncestorType=ListBox}}"
+                                                                CommandParameter="{Binding}">
+                                                            <Button.Style>
+                                                                <Style TargetType="Button" BasedOn="{StaticResource DangerButton}">
+                                                                    <Setter Property="FontSize" Value="12"/>
+                                                                    <Setter Property="Padding" Value="10,6"/>
+                                                                </Style>
+                                                            </Button.Style>
+                                                        </Button>
+                                                    </StackPanel>
+                                                </Grid>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ListBox.ItemTemplate>
+                                </ListBox>
+                            </StackPanel>
+                        </ScrollViewer>
+                    </Grid>
+
+                    <!-- ── UPDATES PAGE ── -->
+                    <Grid Visibility="{Binding IsUpdatesPage, Converter={StaticResource BoolToVis}}">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+
+                        <Border Grid.Row="0" Background="{DynamicResource StoreSurface}"
+                                BorderBrush="{DynamicResource StoreBorder}" BorderThickness="0,0,0,1"
+                                Padding="24,14">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel>
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="Updates" Style="{StaticResource SectionHeader}" Margin="0"/>
+                                        <Border Style="{StaticResource UpdateBadge}"
+                                                Visibility="{Binding HasPendingUpdates, Converter={StaticResource BoolToVis}}"
+                                                Margin="10,0,0,12">
+                                            <TextBlock Text="{Binding UpdateCountText}"
+                                                       Foreground="White" FontSize="13" FontWeight="Bold"/>
+                                        </Border>
+                                    </StackPanel>
+                                    <TextBlock Text="Apps with newer versions available on GitHub."
+                                               Foreground="{DynamicResource StoreSubText}" FontSize="13"/>
+                                </StackPanel>
+                                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                                    <Button Content="Check All" Command="{Binding CheckUpdatesCommand}" Margin="0,0,8,0"/>
+                                    <Button Content="Update All"
+                                            Command="{Binding UpdateAllCommand}"
+                                            Visibility="{Binding HasPendingUpdates, Converter={StaticResource BoolToVis}}"/>
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+
+                        <ScrollViewer Grid.Row="1" Padding="24,16">
+                            <StackPanel>
+                                <!-- No updates state -->
+                                <Border Style="{StaticResource StoreCard}"
+                                        Visibility="{Binding HasPendingUpdates, Converter={StaticResource InvBoolToVis}}">
+                                    <StackPanel HorizontalAlignment="Center" Margin="0,20">
+                                        <TextBlock Text="✔" FontSize="48" HorizontalAlignment="Center"
+                                                   Foreground="{DynamicResource StoreSuccess}"/>
+                                        <TextBlock Text="Everything is up to date"
+                                                   Foreground="{DynamicResource StoreText}"
+                                                   FontSize="16" HorizontalAlignment="Center" Margin="0,12,0,4"/>
+                                        <TextBlock Text="Run Check All to scan installed apps for new releases."
+                                                   Foreground="{DynamicResource StoreSubText}"
+                                                   FontSize="13" HorizontalAlignment="Center"/>
+                                    </StackPanel>
+                                </Border>
+
+                                <ListBox ItemsSource="{Binding AppsWithUpdates}">
+                                    <ListBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border Style="{StaticResource StoreCard}">
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="52"/>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                    </Grid.ColumnDefinitions>
+
+                                                    <Border Width="44" Height="44" CornerRadius="10"
+                                                            Background="{DynamicResource StoreSoftAccent}"
+                                                            VerticalAlignment="Center">
+                                                        <Image Source="{Binding AvatarUrl}" Width="40" Height="40"
+                                                               RenderOptions.BitmapScalingMode="HighQuality"/>
+                                                    </Border>
+
+                                                    <StackPanel Grid.Column="1" Margin="12,0,16,0" VerticalAlignment="Center">
+                                                        <TextBlock Text="{Binding FullName}"
+                                                                   Foreground="{DynamicResource StoreText}"
+                                                                   FontSize="15" FontWeight="Bold"/>
+                                                        <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                                                            <TextBlock Text="{Binding Version}"
+                                                                       Foreground="{DynamicResource StoreSubText}"
+                                                                       FontSize="13"/>
+                                                            <TextBlock Text=" → "
+                                                                       Foreground="{DynamicResource StoreSubText}"
+                                                                       FontSize="13"/>
+                                                            <TextBlock Text="{Binding LatestVersion}"
+                                                                       Foreground="{DynamicResource StoreSuccess}"
+                                                                       FontSize="13" FontWeight="Bold"/>
+                                                        </StackPanel>
+                                                    </StackPanel>
+
+                                                    <Button Grid.Column="2" Content="Upgrade"
+                                                            Command="{Binding DataContext.UpgradeCommand, RelativeSource={RelativeSource AncestorType=ListBox}}"
+                                                            CommandParameter="{Binding}"
+                                                            VerticalAlignment="Center"/>
+                                                </Grid>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ListBox.ItemTemplate>
+                                </ListBox>
+                            </StackPanel>
+                        </ScrollViewer>
+                    </Grid>
+
+                    <!-- ── CLEANER PAGE ── -->
+                    <ScrollViewer Visibility="{Binding IsCleanerPage, Converter={StaticResource BoolToVis}}"
+                                  Padding="24,20">
+                        <StackPanel MaxWidth="720" HorizontalAlignment="Left">
+                            <TextBlock Text="System Cleaner" Style="{StaticResource SectionHeader}"/>
+                            <TextBlock Text="Free up space by removing downloaded packages and cache."
+                                       Foreground="{DynamicResource StoreSubText}"
+                                       FontSize="14" Margin="0,0,0,20"/>
+
+                            <!-- Download cache card -->
+                            <Border Style="{StaticResource StoreCard}">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel>
+                                        <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                                            <TextBlock Text="📥" FontSize="20" Margin="0,0,10,0"/>
+                                            <TextBlock Text="Download Cache"
+                                                       Foreground="{DynamicResource StoreText}"
+                                                       FontSize="16" FontWeight="Bold" VerticalAlignment="Center"/>
+                                        </StackPanel>
+                                        <TextBlock Text="Installer files and packages downloaded from GitHub."
+                                                   Foreground="{DynamicResource StoreSubText}" FontSize="13"/>
+                                        <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                                            <Border Background="{DynamicResource StoreSurfaceAlt}"
+                                                    BorderBrush="{DynamicResource StoreBorder}"
+                                                    BorderThickness="1" CornerRadius="8" Padding="12,5" Margin="0,0,8,0">
+                                                <StackPanel Orientation="Horizontal">
+                                                    <TextBlock Text="Size: " Foreground="{DynamicResource StoreSubText}" FontSize="13"/>
+                                                    <TextBlock Text="{Binding CacheSize}"
+                                                               Foreground="{DynamicResource StoreText}"
+                                                               FontSize="13" FontWeight="Bold"/>
+                                                </StackPanel>
+                                            </Border>
+                                            <Border Background="{DynamicResource StoreSurfaceAlt}"
+                                                    BorderBrush="{DynamicResource StoreBorder}"
+                                                    BorderThickness="1" CornerRadius="8" Padding="12,5">
+                                                <StackPanel Orientation="Horizontal">
+                                                    <TextBlock Text="Files: " Foreground="{DynamicResource StoreSubText}" FontSize="13"/>
+                                                    <TextBlock Text="{Binding CacheFileCount}"
+                                                               Foreground="{DynamicResource StoreText}"
+                                                               FontSize="13" FontWeight="Bold"/>
+                                                </StackPanel>
+                                            </Border>
+                                        </StackPanel>
+                                        <TextBlock Text="{Binding CleanStatus}"
+                                                   Foreground="{DynamicResource StoreSuccess}"
+                                                   FontSize="13" FontWeight="SemiBold" Margin="0,8,0,0"
+                                                   Visibility="{Binding HasCleanStatus, Converter={StaticResource BoolToVis}}"/>
+                                    </StackPanel>
+                                    <Button Grid.Column="1" Content="Clean Cache"
+                                            Command="{Binding CleanCacheCommand}"
+                                            Style="{StaticResource DangerButton}"
+                                            VerticalAlignment="Top"/>
+                                </Grid>
+                            </Border>
+
+                            <!-- Database info card -->
+                            <Border Style="{StaticResource StoreCard}">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel>
+                                        <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                                            <TextBlock Text="🗂" FontSize="20" Margin="0,0,10,0"/>
+                                            <TextBlock Text="App Library"
+                                                       Foreground="{DynamicResource StoreText}"
+                                                       FontSize="16" FontWeight="Bold" VerticalAlignment="Center"/>
+                                        </StackPanel>
+                                        <TextBlock Text="Installed app records tracked by GitHub Store."
+                                                   Foreground="{DynamicResource StoreSubText}" FontSize="13"/>
+                                        <Border Background="{DynamicResource StoreSurfaceAlt}"
+                                                BorderBrush="{DynamicResource StoreBorder}"
+                                                BorderThickness="1" CornerRadius="8" Padding="12,5" Margin="0,10,0,0"
+                                                HorizontalAlignment="Left">
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock Text="Apps: " Foreground="{DynamicResource StoreSubText}" FontSize="13"/>
+                                                <TextBlock Text="{Binding InstalledApps.Count}"
+                                                           Foreground="{DynamicResource StoreText}"
+                                                           FontSize="13" FontWeight="Bold"/>
+                                            </StackPanel>
+                                        </Border>
+                                    </StackPanel>
+                                    <Button Grid.Column="1" Content="View Library"
+                                            Command="{Binding NavigateCommand}"
+                                            CommandParameter="Library"
+                                            VerticalAlignment="Top"/>
+                                </Grid>
+                            </Border>
+
+                            <!-- Tips card -->
+                            <Border Background="{DynamicResource StoreSuccessLight}"
+                                    BorderBrush="{DynamicResource StoreSuccess}"
+                                    BorderThickness="1" CornerRadius="14" Padding="20" Margin="0,0,0,10">
+                                <StackPanel>
+                                    <TextBlock Text="💡 Tips for a clean system"
+                                               Foreground="{DynamicResource StoreSuccess}"
+                                               FontSize="15" FontWeight="Bold" Margin="0,0,0,8"/>
+                                    <TextBlock Foreground="{DynamicResource StoreText}" FontSize="13" TextWrapping="Wrap">
+                                        • Clean the download cache after installing apps to recover disk space.&#10;
+                                        • Use Check Updates in Library to find newer versions of your installed apps.&#10;
+                                        • Remove apps from the Library to keep your catalog tidy.
+                                    </TextBlock>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </ScrollViewer>
+
+                </Grid>
+
+                <!-- Download progress bar (floating bottom) -->
+                <Border Grid.Row="1" VerticalAlignment="Bottom" Grid.ZIndex="50"
+                        Background="{DynamicResource StoreSurface}"
+                        BorderBrush="{DynamicResource StoreBorder}" BorderThickness="0,1,0,0"
+                        Padding="20,12"
+                        Visibility="{Binding IsDownloading, Converter={StaticResource BoolToVis}}">
+                    <StackPanel>
+                        <Grid Margin="0,0,0,6">
+                            <TextBlock Text="{Binding DownloadLabel}"
+                                       Foreground="{DynamicResource StoreText}"
+                                       FontSize="13" FontWeight="SemiBold"/>
+                            <TextBlock Text="{Binding DownloadProgress, StringFormat={}{0:F0}%}"
+                                       Foreground="{DynamicResource StoreSubText}"
+                                       FontSize="13" HorizontalAlignment="Right"/>
+                        </Grid>
+                        <ProgressBar Value="{Binding DownloadProgress}" Maximum="100" Height="10"/>
+                    </StackPanel>
+                </Border>
+            </Grid>
+
+            <!-- ═══ APP DETAIL OVERLAY ═══ -->
+            <Grid Grid.ColumnSpan="2" Grid.ZIndex="100"
+                  Visibility="{Binding ShowDetail, Converter={StaticResource BoolToVis}}">
+                <!-- Backdrop -->
+                <Rectangle Fill="#88000000">
+                    <Rectangle.InputBindings>
+                        <MouseBinding MouseAction="LeftClick" Command="{Binding CloseDetailCommand}"/>
+                    </Rectangle.InputBindings>
+                </Rectangle>
+                <!-- Detail panel -->
+                <Border Width="500" HorizontalAlignment="Right"
+                        Background="{DynamicResource StoreSurface}"
+                        BorderBrush="{DynamicResource StoreBorder}"
+                        BorderThickness="1,0,0,0"
+                        Effect="{DynamicResource SoftShadow}">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+
+                        <!-- Detail header -->
+                        <Border Grid.Row="0" Background="{DynamicResource StoreSoftAccent}"
+                                Padding="24,20">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Orientation="Horizontal">
+                                    <Border Width="52" Height="52" CornerRadius="12"
+                                            Background="{DynamicResource StoreSurface}">
+                                        <Image Source="{Binding SelectedApp.Owner.AvatarUrl}"
+                                               Width="48" Height="48"
+                                               RenderOptions.BitmapScalingMode="HighQuality"/>
+                                    </Border>
+                                    <StackPanel Margin="14,0,0,0" VerticalAlignment="Center">
+                                        <TextBlock Text="{Binding SelectedApp.Name}"
+                                                   Foreground="{DynamicResource StoreText}"
+                                                   FontSize="20" FontWeight="Bold"/>
+                                        <TextBlock Text="{Binding SelectedApp.Owner.Login}"
+                                                   Foreground="{DynamicResource StoreSubText}"
+                                                   FontSize="13"/>
+                                    </StackPanel>
+                                </StackPanel>
+                                <Button Grid.Column="1" Content="✕"
+                                        Command="{Binding CloseDetailCommand}"
+                                        Style="{StaticResource GhostButton}"
+                                        VerticalAlignment="Top">
+                                    <Button.Style>
+                                        <Style TargetType="Button" BasedOn="{StaticResource GhostButton}">
+                                            <Setter Property="Padding" Value="10,6"/>
+                                            <Setter Property="FontSize" Value="14"/>
+                                        </Style>
+                                    </Button.Style>
+                                </Button>
+                            </Grid>
+                        </Border>
+
+                        <!-- Detail body -->
+                        <ScrollViewer Grid.Row="1" Padding="24,16">
+                            <StackPanel>
+                                <TextBlock Text="{Binding SelectedApp.FullName}"
+                                           Foreground="{DynamicResource StoreSubText}"
+                                           FontSize="13" Margin="0,0,0,4"/>
+                                <TextBlock Text="{Binding SelectedApp.Description}"
+                                           Foreground="{DynamicResource StoreText}"
+                                           FontSize="14" TextWrapping="Wrap" Margin="0,0,0,16"/>
+
+                                <!-- Stats row -->
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,16">
+                                    <Border Background="{DynamicResource StoreSurfaceAlt}"
+                                            BorderBrush="{DynamicResource StoreBorder}"
+                                            BorderThickness="1" CornerRadius="8" Padding="12,6" Margin="0,0,8,0">
+                                        <StackPanel>
+                                            <TextBlock Text="★ Stars" Foreground="{DynamicResource StoreSubText}" FontSize="11"/>
+                                            <TextBlock Text="{Binding SelectedApp.Stars, StringFormat={}{0:N0}}"
+                                                       Foreground="{DynamicResource StoreWarning}"
+                                                       FontSize="18" FontWeight="Bold"/>
+                                        </StackPanel>
+                                    </Border>
+                                    <Border Background="{DynamicResource StoreSurfaceAlt}"
+                                            BorderBrush="{DynamicResource StoreBorder}"
+                                            BorderThickness="1" CornerRadius="8" Padding="12,6" Margin="0,0,8,0">
+                                        <StackPanel>
+                                            <TextBlock Text="⑂ Forks" Foreground="{DynamicResource StoreSubText}" FontSize="11"/>
+                                            <TextBlock Text="{Binding SelectedApp.Forks, StringFormat={}{0:N0}}"
+                                                       Foreground="{DynamicResource StoreText}"
+                                                       FontSize="18" FontWeight="Bold"/>
+                                        </StackPanel>
+                                    </Border>
+                                    <Border Background="{DynamicResource StoreSurfaceAlt}"
+                                            BorderBrush="{DynamicResource StoreBorder}"
+                                            BorderThickness="1" CornerRadius="8" Padding="12,6">
+                                        <StackPanel>
+                                            <TextBlock Text="Language" Foreground="{DynamicResource StoreSubText}" FontSize="11"/>
+                                            <TextBlock Text="{Binding SelectedApp.Language}"
+                                                       Foreground="{DynamicResource StoreAccent}"
+                                                       FontSize="14" FontWeight="Bold"/>
+                                        </StackPanel>
+                                    </Border>
+                                </StackPanel>
+
+                                <!-- Latest release -->
+                                <Border Background="{DynamicResource StoreSuccessLight}"
+                                        BorderBrush="{DynamicResource StoreSuccess}"
+                                        BorderThickness="1" CornerRadius="10" Padding="14,10" Margin="0,0,0,16">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="Latest release: "
+                                                   Foreground="{DynamicResource StoreSubText}" FontSize="13"/>
+                                        <TextBlock Text="{Binding SelectedAppLatestVersion}"
+                                                   Foreground="{DynamicResource StoreSuccess}"
+                                                   FontSize="13" FontWeight="Bold"/>
+                                    </StackPanel>
+                                </Border>
+
+                                <!-- Action buttons -->
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,16">
+                                    <Button Content="Get (Install)"
+                                            Command="{Binding InstallCommand}"
+                                            CommandParameter="{Binding SelectedApp}"
+                                            Margin="0,0,8,0"/>
+                                    <Button Content="Open GitHub"
+                                            Style="{StaticResource GhostButton}"
+                                            Command="{Binding OpenCommand}"
+                                            CommandParameter="{Binding SelectedApp}"/>
+                                </StackPanel>
+
+                                <!-- Clone URL -->
+                                <TextBlock Text="Clone URL" Foreground="{DynamicResource StoreSubText}"
+                                           FontSize="12" Margin="0,0,0,4"/>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Border Background="{DynamicResource StoreSurfaceAlt}"
+                                            BorderBrush="{DynamicResource StoreBorder}"
+                                            BorderThickness="1" CornerRadius="8" Padding="12,8">
+                                        <TextBlock Text="{Binding SelectedApp.CloneUrl}"
+                                                   Foreground="{DynamicResource StoreText}"
+                                                   FontSize="12" TextTrimming="CharacterEllipsis"/>
+                                    </Border>
+                                    <Button Grid.Column="1" Content="Copy"
+                                            Style="{StaticResource GhostButton}"
+                                            Command="{Binding CopyCloneCommand}"
+                                            CommandParameter="{Binding SelectedApp}">
+                                        <Button.Style>
+                                            <Style TargetType="Button" BasedOn="{StaticResource GhostButton}">
+                                                <Setter Property="Padding" Value="12,8"/>
+                                                <Setter Property="Margin" Value="6,0,0,0"/>
+                                            </Style>
+                                        </Button.Style>
+                                    </Button>
+                                </Grid>
+                            </StackPanel>
+                        </ScrollViewer>
+                    </Grid>
+                </Border>
+            </Grid>
+        </Grid>
+
+        <!-- ═══ STATUS BAR ═══ -->
+        <StatusBar Grid.Row="1">
+            <TextBlock Text="{Binding StatusText}"/>
+        </StatusBar>
+    </Grid>
+</Window>
