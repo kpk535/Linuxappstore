@@ -871,45 +871,80 @@ public class MainViewModel : INotifyPropertyChanged
     // ── Profile ───────────────────────────────────────────────────────────────
     private async Task LoadProfileAsync()
     {
-        IsProfileLoading = true; StatusText = "Loading profile…";
+        IsProfileLoading = true;
+        StatusText = "Loading profile…";
         try
         {
             var loaded = await _profileService.LoadAsync(_settings.GitHubToken);
-            Profile    = loaded;
-            StatusText = loaded.HasGitHubProfile
-                ? $"Signed in as @{loaded.Login}"
-                : $"Logged in as {loaded.WindowsUser} (no GitHub token)";
+            if (loaded != null)
+            {
+                Profile = loaded;
+                StatusText = loaded.HasGitHubProfile
+                    ? $"✓ Signed in as @{loaded.Login}"
+                    : $"ℹ Logged in as {loaded.WindowsUser} (no GitHub token)";
+            }
+            else
+            {
+                StatusText = "Profile: unable to load";
+            }
         }
-        catch (Exception ex) { StatusText = "Profile load failed: " + ex.Message; }
+        catch (OperationCanceledException) { StatusText = "Profile loading cancelled"; }
+        catch (Exception ex)
+        {
+            StatusText = $"✗ Profile load failed: {ex.GetType().Name}: {ex.Message}";
+        }
         finally { IsProfileLoading = false; }
     }
 
     // ── System Info ───────────────────────────────────────────────────────────
     private async Task LoadSysInfoAsync()
     {
-        IsSysInfoLoading = true; StatusText = "Loading system information…";
+        IsSysInfoLoading = true;
+        StatusText = "Loading system information…";
         try
         {
-            SysInfo    = await Task.Run(() => _sysInfoService.GetSnapshot());
-            StatusText = $"System info loaded — {SysInfo.OsDescription}";
+            var snapshot = await Task.Run(() => _sysInfoService.GetSnapshot());
+            if (snapshot != null)
+            {
+                SysInfo = snapshot;
+                StatusText = $"✓ System info loaded — {snapshot.OsDescription}";
+            }
+            else
+            {
+                StatusText = "System info: unable to read snapshot";
+            }
         }
-        catch (Exception ex) { StatusText = "System info failed: " + ex.Message; }
+        catch (OperationCanceledException) { StatusText = "System info loading cancelled"; }
+        catch (Exception ex)
+        {
+            StatusText = $"✗ System info failed: {ex.GetType().Name}: {ex.Message}";
+        }
         finally { IsSysInfoLoading = false; }
     }
 
     // ── Process Manager ───────────────────────────────────────────────────────
     private async Task LoadProcessesAsync()
     {
-        IsProcessLoading = true; ProcessStatus = "Reading running processes…";
+        IsProcessLoading = true;
+        ProcessStatus = "Reading running processes…";
         try
         {
-            _allProcesses = await Task.Run(() => _processService.GetProcesses(_processFilter));
+            var procs = await Task.Run(() => _processService.GetProcesses(_processFilter));
+            _allProcesses = procs ?? new();
             Processes.Clear();
-            foreach (var p in _allProcesses) Processes.Add(p);
-            ProcessStatus = $"{Processes.Count} process(es) running.";
-            StatusText    = ProcessStatus;
+            foreach (var p in _allProcesses)
+            {
+                try { Processes.Add(p); }
+                catch { }
+            }
+            ProcessStatus = $"✓ {Processes.Count} process(es) running.";
+            StatusText = ProcessStatus;
         }
-        catch (Exception ex) { ProcessStatus = "Failed: " + ex.Message; }
+        catch (OperationCanceledException) { ProcessStatus = "Process loading cancelled"; }
+        catch (Exception ex)
+        {
+            ProcessStatus = $"✗ Failed: {ex.GetType().Name}: {ex.Message}";
+        }
         finally { IsProcessLoading = false; }
     }
 
@@ -924,15 +959,22 @@ public class MainViewModel : INotifyPropertyChanged
     // ── Environment Variables ─────────────────────────────────────────────────
     private async Task LoadEnvVarsAsync()
     {
-        EnvVarStatus = "Loading environment variables…"; EnvVariables.Clear();
+        EnvVarStatus = "Loading environment variables…";
+        EnvVariables.Clear();
+        SelectedEnvVar = null;
         try
         {
-            _allEnvVars = await Task.Run(() => _envVarService.GetAll());
+            var vars = await Task.Run(() => _envVarService.GetAll());
+            _allEnvVars = vars ?? new();
             ApplyEnvVarFilter();
-            EnvVarStatus = $"{_allEnvVars.Count} variable(s) loaded.";
-            StatusText   = EnvVarStatus;
+            EnvVarStatus = $"✓ {_allEnvVars.Count} variable(s) loaded.";
+            StatusText = EnvVarStatus;
         }
-        catch (Exception ex) { EnvVarStatus = "Failed: " + ex.Message; }
+        catch (OperationCanceledException) { EnvVarStatus = "Loading cancelled"; }
+        catch (Exception ex)
+        {
+            EnvVarStatus = $"✗ Failed: {ex.GetType().Name}: {ex.Message}";
+        }
     }
 
     private void ApplyEnvVarFilter()
