@@ -194,8 +194,7 @@
                                      Margin="3,0,0,0" HorizontalAlignment="Left"
                                      VerticalAlignment="Center"/>
                         </Border>
-                        <ContentPresenter VerticalAlignment="Center"
-                                          Foreground="{TemplateBinding Foreground}"/>
+                        <ContentPresenter VerticalAlignment="Center"/>
                     </StackPanel>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsChecked" Value="True">
