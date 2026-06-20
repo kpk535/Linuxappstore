@@ -21,6 +21,9 @@ public class MainViewModel : INotifyPropertyChanged
     private readonly PackageDetector _detector = new();
     private readonly AppRemovalService _removal = new();
     private readonly SystemCleanerService _cleaner = new();
+    private readonly WingetService _winget = new();
+    private readonly WindowsAppsService _windowsAppsService = new();
+    private readonly StartupService _startupService = new();
 
     private string _searchText = "windows app";
     private int _searchPage = 1;
@@ -34,11 +37,19 @@ public class MainViewModel : INotifyPropertyChanged
     private GitHubRepository? _selectedApp;
     private string _selectedAppLatestVersion = string.Empty;
     private string _tokenText = string.Empty;
-    private string _cacheSize = "—";
-    private int _cacheFileCount;
     private string _cleanStatus = string.Empty;
     private int _updateCount;
     private bool _isDarkMode;
+
+    private string _wingetQuery = string.Empty;
+    private string _wingetStatus = string.Empty;
+    private bool _isWingetLoading;
+
+    private List<RegisteredApp> _allWindowsApps = new();
+    private string _windowsAppsFilter = string.Empty;
+    private string _windowsAppsStatus = string.Empty;
+
+    private string _startupStatus = string.Empty;
 
     public string SearchText { get => _searchText; set { _searchText = value; OnPropertyChanged(); } }
     public int SearchPage { get => _searchPage; set { _searchPage = value; OnPropertyChanged(); } }
@@ -51,10 +62,23 @@ public class MainViewModel : INotifyPropertyChanged
     public GitHubRepository? SelectedApp { get => _selectedApp; set { _selectedApp = value; OnPropertyChanged(); } }
     public string SelectedAppLatestVersion { get => _selectedAppLatestVersion; set { _selectedAppLatestVersion = value; OnPropertyChanged(); } }
     public string TokenText { get => _tokenText; set { _tokenText = value; OnPropertyChanged(); } }
-    public string CacheSize { get => _cacheSize; set { _cacheSize = value; OnPropertyChanged(); } }
-    public int CacheFileCount { get => _cacheFileCount; set { _cacheFileCount = value; OnPropertyChanged(); } }
     public string CleanStatus { get => _cleanStatus; set { _cleanStatus = value; OnPropertyChanged(); OnPropertyChanged(nameof(HasCleanStatus)); } }
     public bool IsDarkMode { get => _isDarkMode; set { _isDarkMode = value; OnPropertyChanged(); } }
+
+    public string WingetQuery { get => _wingetQuery; set { _wingetQuery = value; OnPropertyChanged(); } }
+    public string WingetStatus { get => _wingetStatus; set { _wingetStatus = value; OnPropertyChanged(); OnPropertyChanged(nameof(HasWingetStatus)); } }
+    public bool IsWingetLoading { get => _isWingetLoading; set { _isWingetLoading = value; OnPropertyChanged(); } }
+    public bool WingetAvailable => _winget.IsAvailable;
+    public bool WingetNotAvailable => !_winget.IsAvailable;
+    public bool HasWingetStatus => !string.IsNullOrEmpty(_wingetStatus);
+
+    public string WindowsAppsFilter
+    {
+        get => _windowsAppsFilter;
+        set { _windowsAppsFilter = value; OnPropertyChanged(); ApplyWindowsAppsFilter(); }
+    }
+    public string WindowsAppsStatus { get => _windowsAppsStatus; set { _windowsAppsStatus = value; OnPropertyChanged(); } }
+    public string StartupStatus { get => _startupStatus; set { _startupStatus = value; OnPropertyChanged(); } }
 
     public int UpdateCount
     {
@@ -75,107 +99,256 @@ public class MainViewModel : INotifyPropertyChanged
             OnPropertyChanged(nameof(IsLibraryPage));
             OnPropertyChanged(nameof(IsUpdatesPage));
             OnPropertyChanged(nameof(IsCleanerPage));
+            OnPropertyChanged(nameof(IsWindowsAppsPage));
+            OnPropertyChanged(nameof(IsStartupPage));
+            OnPropertyChanged(nameof(IsWingetPage));
         }
     }
-    public bool IsHomePage => _currentPage == "Home";
-    public bool IsLibraryPage => _currentPage == "Library";
-    public bool IsUpdatesPage => _currentPage == "Updates";
-    public bool IsCleanerPage => _currentPage == "Cleaner";
+    public bool IsHomePage       => _currentPage == "Home";
+    public bool IsLibraryPage    => _currentPage == "Library";
+    public bool IsUpdatesPage    => _currentPage == "Updates";
+    public bool IsCleanerPage    => _currentPage == "Cleaner";
+    public bool IsWindowsAppsPage => _currentPage == "WindowsApps";
+    public bool IsStartupPage    => _currentPage == "Startup";
+    public bool IsWingetPage     => _currentPage == "Winget";
 
-    public ObservableCollection<GitHubRepository> Repositories { get; } = new();
-    public ObservableCollection<GitHubRepository> FeaturedApps { get; } = new();
-    public ObservableCollection<InstalledApp> InstalledApps { get; } = new();
-    public ObservableCollection<InstalledApp> AppsWithUpdates { get; } = new();
+    public ObservableCollection<GitHubRepository> Repositories  { get; } = new();
+    public ObservableCollection<GitHubRepository> FeaturedApps  { get; } = new();
+    public ObservableCollection<InstalledApp>     InstalledApps { get; } = new();
+    public ObservableCollection<InstalledApp>     AppsWithUpdates { get; } = new();
+    public ObservableCollection<WingetPackage>    WingetResults { get; } = new();
+    public ObservableCollection<RegisteredApp>    WindowsApps   { get; } = new();
+    public ObservableCollection<StartupEntry>     StartupEntries { get; } = new();
+    public ObservableCollection<CleanerTarget>    CleanerTargets { get; } = new();
 
-    public bool HasNoInstalledApps => InstalledApps.Count == 0;
-    public bool HasCleanStatus => !string.IsNullOrEmpty(_cleanStatus);
+    public bool HasNoInstalledApps   => InstalledApps.Count == 0;
+    public bool HasCleanStatus       => !string.IsNullOrEmpty(_cleanStatus);
+    public bool HasNoWindowsApps     => WindowsApps.Count == 0;
+    public bool HasNoStartupEntries  => StartupEntries.Count == 0;
+    public bool HasNoWingetResults   => WingetResults.Count == 0;
+    public bool HasNoCleanerTargets  => CleanerTargets.Count == 0;
 
-    public ICommand SearchCommand { get; }
-    public ICommand NextPageCommand { get; }
-    public ICommand PreviousPageCommand { get; }
-    public ICommand OpenCommand { get; }
-    public ICommand DownloadCommand { get; }
-    public ICommand InstallCommand { get; }
-    public ICommand CopyCloneCommand { get; }
-    public ICommand CategoryCommand { get; }
-    public ICommand SaveTokenCommand { get; }
-    public ICommand LoadInstalledCommand { get; }
-    public ICommand CheckUpdatesCommand { get; }
-    public ICommand NavigateCommand { get; }
-    public ICommand RemoveCommand { get; }
-    public ICommand UpgradeCommand { get; }
-    public ICommand ShowDetailCommand { get; }
-    public ICommand CloseDetailCommand { get; }
-    public ICommand CleanCacheCommand { get; }
-    public ICommand UpdateAllCommand { get; }
-    public ICommand ToggleThemeCommand { get; }
+    public ICommand SearchCommand          { get; }
+    public ICommand NextPageCommand        { get; }
+    public ICommand PreviousPageCommand    { get; }
+    public ICommand OpenCommand            { get; }
+    public ICommand DownloadCommand        { get; }
+    public ICommand InstallCommand         { get; }
+    public ICommand CopyCloneCommand       { get; }
+    public ICommand CategoryCommand        { get; }
+    public ICommand SaveTokenCommand       { get; }
+    public ICommand LoadInstalledCommand   { get; }
+    public ICommand CheckUpdatesCommand    { get; }
+    public ICommand NavigateCommand        { get; }
+    public ICommand RemoveCommand          { get; }
+    public ICommand UpgradeCommand         { get; }
+    public ICommand ShowDetailCommand      { get; }
+    public ICommand CloseDetailCommand     { get; }
+    public ICommand CleanCacheCommand      { get; }
+    public ICommand CleanTargetCommand     { get; }
+    public ICommand ScanCleanerCommand     { get; }
+    public ICommand UpdateAllCommand       { get; }
+    public ICommand ToggleThemeCommand     { get; }
+    public ICommand WingetSearchCommand    { get; }
+    public ICommand WingetInstallCommand   { get; }
+    public ICommand WingetUpgradeCommand   { get; }
+    public ICommand WingetUninstallCommand { get; }
+    public ICommand LoadWindowsAppsCommand     { get; }
+    public ICommand UninstallWindowsAppCommand { get; }
+    public ICommand LoadStartupCommand     { get; }
+    public ICommand DisableStartupCommand  { get; }
+    public ICommand EnableStartupCommand   { get; }
+    public ICommand DeleteStartupCommand   { get; }
 
     public MainViewModel()
     {
-        SearchCommand = new RelayCommand(async _ => { SearchPage = 1; await SearchAsync(); });
-        NextPageCommand = new RelayCommand(async _ => { SearchPage++; await SearchAsync(); });
+        SearchCommand       = new RelayCommand(async _ => { SearchPage = 1; await SearchAsync(); });
+        NextPageCommand     = new RelayCommand(async _ => { SearchPage++; await SearchAsync(); });
         PreviousPageCommand = new RelayCommand(async _ => { if (SearchPage > 1) { SearchPage--; await SearchAsync(); } });
+
         OpenCommand = new RelayCommand(r =>
         {
             var url = r switch
             {
                 GitHubRepository repo => repo.HtmlUrl,
-                InstalledApp app => app.SourceUrl,
-                string s => s,
-                _ => null
+                InstalledApp app      => app.SourceUrl,
+                string s              => s,
+                _                    => null
             };
             if (!string.IsNullOrEmpty(url)) BrowserHelper.Open(url);
         });
+
         DownloadCommand = new RelayCommand(async r => await DownloadAsync(r));
-        InstallCommand = new RelayCommand(async r => await InstallAsync(r));
+        InstallCommand  = new RelayCommand(async r => await InstallAsync(r));
+
         CopyCloneCommand = new RelayCommand(r =>
         {
-            if (r is GitHubRepository repo) { Clipboard.SetText(repo.CloneUrl); StatusText = "Copied clone URL: " + repo.CloneUrl; }
+            if (r is GitHubRepository repo)
+            {
+                Clipboard.SetText(repo.CloneUrl);
+                StatusText = "Copied clone URL: " + repo.CloneUrl;
+            }
         });
+
         CategoryCommand = new RelayCommand(async q =>
         {
-            SearchText = q?.ToString() ?? "windows app";
-            SearchPage = 1;
+            SearchText  = q?.ToString() ?? "windows app";
+            SearchPage  = 1;
             CurrentPage = "Home";
             await SearchAsync();
         });
+
         SaveTokenCommand = new RelayCommand(_ =>
         {
-            _gitHubService.AccessToken = TokenText;
+            _gitHubService.AccessToken  = TokenText;
             _releaseService.AccessToken = TokenText;
-            _scanner.AccessToken = TokenText;
+            _scanner.AccessToken        = TokenText;
             StatusText = "GitHub token saved.";
         });
+
         LoadInstalledCommand = new RelayCommand(async _ => await LoadInstalledAsync());
-        CheckUpdatesCommand = new RelayCommand(async _ => await CheckUpdatesAsync());
+        CheckUpdatesCommand  = new RelayCommand(async _ => await CheckUpdatesAsync());
+
         NavigateCommand = new RelayCommand(p =>
         {
             CurrentPage = p?.ToString() ?? "Home";
-            if (CurrentPage == "Cleaner") LoadCleanerInfo();
-            if (CurrentPage == "Library") _ = LoadInstalledAsync();
-            if (CurrentPage == "Updates") _ = CheckUpdatesAsync();
+            switch (CurrentPage)
+            {
+                case "Cleaner":     _ = LoadCleanerAsync();      break;
+                case "Library":     _ = LoadInstalledAsync();    break;
+                case "Updates":     _ = CheckUpdatesAsync();     break;
+                case "WindowsApps": _ = LoadWindowsAppsAsync();  break;
+                case "Startup":     _ = LoadStartupAsync();      break;
+                case "Winget":      _ = LoadWingetInstalledAsync(); break;
+            }
         });
-        RemoveCommand = new RelayCommand(async r => await RemoveAsync(r));
-        UpgradeCommand = new RelayCommand(async r => await UpgradeAsync(r));
+
+        RemoveCommand     = new RelayCommand(async r => await RemoveAsync(r));
+        UpgradeCommand    = new RelayCommand(async r => await UpgradeAsync(r));
         ShowDetailCommand = new RelayCommand(async r => await ShowDetailAsync(r));
         CloseDetailCommand = new RelayCommand(_ => ShowDetail = false);
-        CleanCacheCommand = new RelayCommand(_ => CleanCache());
-        UpdateAllCommand = new RelayCommand(async _ => await UpdateAllAsync());
+
+        ScanCleanerCommand = new RelayCommand(async _ => await LoadCleanerAsync());
+        CleanCacheCommand  = ScanCleanerCommand;
+
+        CleanTargetCommand = new RelayCommand(async r =>
+        {
+            if (r is not CleanerTarget target) return;
+            target.Scanning = true;
+            var deleted = await Task.Run(() => _cleaner.Clean(target));
+            var (bytes, count) = await Task.Run(() => _cleaner.Scan(target));
+            target.SizeBytes  = bytes;
+            target.FileCount  = count;
+            target.Scanning   = false;
+            CleanStatus = $"Cleaned {target.Name}: {deleted} file(s) deleted.";
+            StatusText  = CleanStatus;
+        });
+
+        UpdateAllCommand   = new RelayCommand(async _ => await UpdateAllAsync());
         ToggleThemeCommand = new RelayCommand(_ => ToggleTheme());
 
-        InstalledApps.CollectionChanged += (_, __) => OnPropertyChanged(nameof(HasNoInstalledApps));
+        // ── Winget ──────────────────────────────────────────────────────────
+        WingetSearchCommand = new RelayCommand(async _ =>
+        {
+            if (!_winget.IsAvailable) { WingetStatus = "winget is not available on this system."; return; }
+            IsWingetLoading = true;
+            WingetStatus = $"Searching for \"{WingetQuery}\"…";
+            WingetResults.Clear();
+            try
+            {
+                var results = await _winget.SearchAsync(WingetQuery);
+                foreach (var p in results) WingetResults.Add(p);
+                WingetStatus = $"{results.Count} result(s) for \"{WingetQuery}\"";
+            }
+            catch (Exception ex) { WingetStatus = "Search failed: " + ex.Message; }
+            finally { IsWingetLoading = false; }
+        });
+
+        WingetInstallCommand = new RelayCommand(async r =>
+        {
+            if (r is not WingetPackage pkg) return;
+            WingetStatus = $"Installing {pkg.Id}…";
+            var result = await _winget.InstallAsync(pkg.Id);
+            WingetStatus = result;
+            StatusText   = result;
+        });
+
+        WingetUpgradeCommand = new RelayCommand(async r =>
+        {
+            if (r is not WingetPackage pkg) return;
+            WingetStatus = $"Upgrading {pkg.Id}…";
+            var result = await _winget.UpgradeAsync(pkg.Id);
+            WingetStatus = result;
+            StatusText   = result;
+        });
+
+        WingetUninstallCommand = new RelayCommand(async r =>
+        {
+            if (r is not WingetPackage pkg) return;
+            WingetStatus = $"Uninstalling {pkg.Id}…";
+            var result = await _winget.UninstallAsync(pkg.Id);
+            WingetStatus = result;
+            StatusText   = result;
+        });
+
+        // ── Windows Apps ─────────────────────────────────────────────────────
+        LoadWindowsAppsCommand = new RelayCommand(async _ => await LoadWindowsAppsAsync());
+
+        UninstallWindowsAppCommand = new RelayCommand(r =>
+        {
+            if (r is not RegisteredApp app) return;
+            _windowsAppsService.Uninstall(app);
+            StatusText = $"Launched uninstaller for {app.DisplayName}.";
+        });
+
+        // ── Startup ──────────────────────────────────────────────────────────
+        LoadStartupCommand = new RelayCommand(async _ => await LoadStartupAsync());
+
+        DisableStartupCommand = new RelayCommand(r =>
+        {
+            if (r is not StartupEntry entry) return;
+            _startupService.Disable(entry);
+            StartupStatus = $"Disabled: {entry.Name}";
+            StatusText    = StartupStatus;
+        });
+
+        EnableStartupCommand = new RelayCommand(r =>
+        {
+            if (r is not StartupEntry entry) return;
+            _startupService.Enable(entry);
+            StartupStatus = $"Enabled: {entry.Name}";
+            StatusText    = StartupStatus;
+        });
+
+        DeleteStartupCommand = new RelayCommand(r =>
+        {
+            if (r is not StartupEntry entry) return;
+            _startupService.Delete(entry);
+            StartupEntries.Remove(entry);
+            StartupStatus = $"Deleted startup entry: {entry.Name}";
+            StatusText    = StartupStatus;
+        });
+
+        // ── Collection change notifications ──────────────────────────────────
+        InstalledApps.CollectionChanged  += (_, _) => OnPropertyChanged(nameof(HasNoInstalledApps));
+        WindowsApps.CollectionChanged    += (_, _) => OnPropertyChanged(nameof(HasNoWindowsApps));
+        StartupEntries.CollectionChanged += (_, _) => OnPropertyChanged(nameof(HasNoStartupEntries));
+        WingetResults.CollectionChanged  += (_, _) => OnPropertyChanged(nameof(HasNoWingetResults));
+        CleanerTargets.CollectionChanged += (_, _) => OnPropertyChanged(nameof(HasNoCleanerTargets));
 
         _ = LoadFeaturedAsync();
         _ = LoadInstalledAsync();
         _ = SearchAsync();
     }
 
+    // ── GitHub search ────────────────────────────────────────────────────────
+
     private async Task SearchAsync()
     {
         try
         {
-            IsLoading = true;
-            StatusText = $"Searching GitHub page {SearchPage}...";
+            IsLoading  = true;
+            StatusText = $"Searching GitHub page {SearchPage}…";
             Repositories.Clear();
             var repos = await _gitHubService.SearchAsync(SearchText, SearchPage);
             foreach (var repo in repos) Repositories.Add(repo);
@@ -196,21 +369,23 @@ public class MainViewModel : INotifyPropertyChanged
         catch { }
     }
 
+    // ── Download / Install ────────────────────────────────────────────────────
+
     private async Task DownloadAsync(object? arg)
     {
         if (arg is not GitHubRepository repo) return;
-        StatusText = "Fetching release for " + repo.FullName + "...";
+        StatusText = "Fetching release for " + repo.FullName + "…";
         var release = await _releaseService.GetLatestReleaseAsync(repo.FullName);
         var url = release == null ? repo.ZipUrl : _releaseService.PickWindowsAsset(release) ?? repo.ZipUrl;
-        IsDownloading = true;
+        IsDownloading   = true;
         DownloadProgress = 0;
-        DownloadLabel = $"Downloading {repo.Name}...";
+        DownloadLabel   = $"Downloading {repo.Name}…";
         try
         {
             var file = await _zipDownloader.DownloadAsync(url, repo.Name, new Progress<double>(p =>
             {
                 DownloadProgress = p;
-                DownloadLabel = $"Downloading {repo.Name} — {p:F0}%";
+                DownloadLabel    = $"Downloading {repo.Name} — {p:F0}%";
             }));
             StatusText = $"Downloaded: {file}";
         }
@@ -221,21 +396,21 @@ public class MainViewModel : INotifyPropertyChanged
     private async Task InstallAsync(object? arg)
     {
         if (arg is not GitHubRepository repo) return;
-        StatusText = "Fetching release for " + repo.FullName + "...";
+        StatusText = "Fetching release for " + repo.FullName + "…";
         var release = await _releaseService.GetLatestReleaseAsync(repo.FullName);
-        var url = release == null ? repo.ZipUrl : _releaseService.PickWindowsAsset(release) ?? repo.ZipUrl;
+        var url     = release == null ? repo.ZipUrl : _releaseService.PickWindowsAsset(release) ?? repo.ZipUrl;
         var version = release?.TagName ?? "zip";
 
-        IsDownloading = true;
+        IsDownloading    = true;
         DownloadProgress = 0;
-        DownloadLabel = $"Installing {repo.Name}...";
+        DownloadLabel    = $"Installing {repo.Name}…";
         string file;
         try
         {
             file = await _zipDownloader.DownloadAsync(url, repo.Name, new Progress<double>(p =>
             {
                 DownloadProgress = p;
-                DownloadLabel = $"Installing {repo.Name} — {p:F0}%";
+                DownloadLabel    = $"Installing {repo.Name} — {p:F0}%";
             }));
         }
         catch (Exception ex) { StatusText = "Install failed: " + ex.Message; IsDownloading = false; return; }
@@ -246,22 +421,22 @@ public class MainViewModel : INotifyPropertyChanged
         var existing = InstalledApps.FirstOrDefault(a => a.FullName == repo.FullName);
         if (existing != null)
         {
-            existing.Version = version;
+            existing.Version     = version;
             existing.InstallPath = file;
             existing.InstalledAt = DateTime.Now;
-            existing.HasUpdate = false;
+            existing.HasUpdate   = false;
         }
         else
         {
             InstalledApps.Add(new InstalledApp
             {
-                Name = repo.Name,
-                FullName = repo.FullName,
-                SourceUrl = repo.HtmlUrl,
+                Name        = repo.Name,
+                FullName    = repo.FullName,
+                SourceUrl   = repo.HtmlUrl,
                 InstallPath = file,
-                Version = version,
+                Version     = version,
                 InstalledAt = DateTime.Now,
-                AvatarUrl = repo.Owner.AvatarUrl,
+                AvatarUrl   = repo.Owner.AvatarUrl,
                 Description = repo.Description ?? string.Empty
             });
         }
@@ -279,7 +454,7 @@ public class MainViewModel : INotifyPropertyChanged
     private async Task CheckUpdatesAsync()
     {
         if (InstalledApps.Count == 0) { StatusText = "No installed apps to scan."; return; }
-        StatusText = "Scanning for updates...";
+        StatusText = "Scanning for updates…";
         AppsWithUpdates.Clear();
         foreach (var app in InstalledApps.ToList())
         {
@@ -287,7 +462,7 @@ public class MainViewModel : INotifyPropertyChanged
             if (app.HasUpdate && !AppsWithUpdates.Contains(app)) AppsWithUpdates.Add(app);
         }
         UpdateCount = AppsWithUpdates.Count;
-        StatusText = UpdateCount == 0 ? "All apps are up to date." : $"{UpdateCount} update(s) available.";
+        StatusText  = UpdateCount == 0 ? "All apps are up to date." : $"{UpdateCount} update(s) available.";
     }
 
     private async Task RemoveAsync(object? arg)
@@ -304,32 +479,32 @@ public class MainViewModel : INotifyPropertyChanged
     private async Task UpgradeAsync(object? arg)
     {
         if (arg is not InstalledApp app) return;
-        StatusText = $"Upgrading {app.FullName}...";
+        StatusText = $"Upgrading {app.FullName}…";
         var release = await _releaseService.GetLatestReleaseAsync(app.FullName);
         if (release == null) { StatusText = "No release found for " + app.FullName; return; }
         var url = _releaseService.PickWindowsAsset(release)
                   ?? $"https://github.com/{app.FullName}/archive/refs/heads/main.zip";
 
-        IsDownloading = true;
+        IsDownloading    = true;
         DownloadProgress = 0;
-        DownloadLabel = $"Upgrading {app.Name} to {release.TagName}...";
+        DownloadLabel    = $"Upgrading {app.Name} to {release.TagName}…";
         string file;
         try
         {
             file = await _zipDownloader.DownloadAsync(url, app.Name, new Progress<double>(p =>
             {
                 DownloadProgress = p;
-                DownloadLabel = $"Upgrading {app.Name} — {p:F0}%";
+                DownloadLabel    = $"Upgrading {app.Name} — {p:F0}%";
             }));
         }
         catch (Exception ex) { StatusText = "Upgrade failed: " + ex.Message; IsDownloading = false; return; }
         finally { IsDownloading = false; }
 
         if (_detector.IsInstaller(file)) _installer.RunInstaller(file);
-        app.Version = release.TagName;
+        app.Version       = release.TagName;
         app.LatestVersion = release.TagName;
-        app.InstallPath = file;
-        app.HasUpdate = false;
+        app.InstallPath   = file;
+        app.HasUpdate     = false;
         var upd = AppsWithUpdates.FirstOrDefault(a => a.FullName == app.FullName);
         if (upd != null) { AppsWithUpdates.Remove(upd); UpdateCount = AppsWithUpdates.Count; }
         await _database.SaveAsync(InstalledApps.ToList());
@@ -339,27 +514,11 @@ public class MainViewModel : INotifyPropertyChanged
     private async Task ShowDetailAsync(object? arg)
     {
         if (arg is not GitHubRepository repo) return;
-        SelectedApp = repo;
-        ShowDetail = true;
-        SelectedAppLatestVersion = "Checking...";
-        var release = await _releaseService.GetLatestReleaseAsync(repo.FullName);
+        SelectedApp            = repo;
+        ShowDetail             = true;
+        SelectedAppLatestVersion = "Checking…";
+        var release            = await _releaseService.GetLatestReleaseAsync(repo.FullName);
         SelectedAppLatestVersion = release?.TagName ?? "No release";
-    }
-
-    private void LoadCleanerInfo()
-    {
-        CacheSize = _cleaner.FormatSize(_cleaner.GetCacheSize());
-        CacheFileCount = _cleaner.GetCacheFileCount();
-        CleanStatus = string.Empty;
-    }
-
-    private void CleanCache()
-    {
-        _cleaner.ClearCache();
-        CacheSize = "0 B";
-        CacheFileCount = 0;
-        CleanStatus = "Cache cleared.";
-        StatusText = "Download cache cleared.";
     }
 
     private async Task UpdateAllAsync()
@@ -369,10 +528,98 @@ public class MainViewModel : INotifyPropertyChanged
         StatusText = $"Updated {toUpdate.Count} app(s).";
     }
 
+    // ── System Cleaner ────────────────────────────────────────────────────────
+
+    private async Task LoadCleanerAsync()
+    {
+        CleanerTargets.Clear();
+        CleanStatus = string.Empty;
+        var targets = _cleaner.BuildTargets();
+        foreach (var t in targets)
+        {
+            t.Scanning = true;
+            CleanerTargets.Add(t);
+        }
+        foreach (var t in CleanerTargets.ToList())
+        {
+            var (bytes, count) = await Task.Run(() => _cleaner.Scan(t));
+            t.SizeBytes = bytes;
+            t.FileCount = count;
+            t.Scanning  = false;
+        }
+        StatusText = "Cleaner: scan complete.";
+    }
+
+    // ── Windows Apps (registry) ───────────────────────────────────────────────
+
+    private async Task LoadWindowsAppsAsync()
+    {
+        WindowsAppsStatus = "Loading installed programs…";
+        _allWindowsApps.Clear();
+        WindowsApps.Clear();
+        try
+        {
+            _allWindowsApps = await Task.Run(() => _windowsAppsService.GetInstalledApps());
+            ApplyWindowsAppsFilter();
+            WindowsAppsStatus = $"{_allWindowsApps.Count} program(s) found.";
+        }
+        catch (Exception ex) { WindowsAppsStatus = "Failed to load: " + ex.Message; }
+    }
+
+    private void ApplyWindowsAppsFilter()
+    {
+        WindowsApps.Clear();
+        var filter = _windowsAppsFilter.Trim();
+        foreach (var a in _allWindowsApps)
+        {
+            if (string.IsNullOrEmpty(filter) ||
+                a.DisplayName.Contains(filter, StringComparison.OrdinalIgnoreCase) ||
+                a.Publisher.Contains(filter, StringComparison.OrdinalIgnoreCase))
+            {
+                WindowsApps.Add(a);
+            }
+        }
+    }
+
+    // ── Startup manager ───────────────────────────────────────────────────────
+
+    private async Task LoadStartupAsync()
+    {
+        StartupStatus = "Loading startup entries…";
+        StartupEntries.Clear();
+        try
+        {
+            var entries = await Task.Run(() => _startupService.GetEntries());
+            foreach (var e in entries) StartupEntries.Add(e);
+            StartupStatus = $"{entries.Count} startup entry(ies) found.";
+        }
+        catch (Exception ex) { StartupStatus = "Failed to load: " + ex.Message; }
+    }
+
+    // ── Winget ────────────────────────────────────────────────────────────────
+
+    private async Task LoadWingetInstalledAsync()
+    {
+        if (!_winget.IsAvailable) { WingetStatus = "winget is not available on this system."; return; }
+        IsWingetLoading = true;
+        WingetStatus    = "Loading installed packages…";
+        WingetResults.Clear();
+        try
+        {
+            var packages = await _winget.ListInstalledAsync();
+            foreach (var p in packages) WingetResults.Add(p);
+            WingetStatus = $"{packages.Count} package(s) installed via winget.";
+        }
+        catch (Exception ex) { WingetStatus = "Failed: " + ex.Message; }
+        finally { IsWingetLoading = false; }
+    }
+
+    // ── Theme ─────────────────────────────────────────────────────────────────
+
     private void ToggleTheme()
     {
         IsDarkMode = !IsDarkMode;
-        var uri = new Uri(IsDarkMode ? "Themes/DarkTheme.xaml" : "Themes/StoreTheme.xaml", UriKind.Relative);
+        var uri  = new Uri(IsDarkMode ? "Themes/DarkTheme.xaml" : "Themes/StoreTheme.xaml", UriKind.Relative);
         var dict = new ResourceDictionary { Source = uri };
         Application.Current.Resources.MergedDictionaries.Clear();
         Application.Current.Resources.MergedDictionaries.Add(dict);
