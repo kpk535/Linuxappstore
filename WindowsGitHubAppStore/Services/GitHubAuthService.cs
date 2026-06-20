@@ -12,7 +12,7 @@ public class GitHubAuthService
     private const string RedirectUri = "http://localhost:8080/callback";
     private const string AuthorizeUrl = "https://github.com/login/oauth/authorize";
     private const string TokenUrl = "https://github.com/login/oauth/access_token";
-    private const string[] Scopes = { "repo", "user:email" };
+    private static readonly string[] Scopes = { "repo", "user:email" };
 
     private static readonly HttpClient Http = new();
 
