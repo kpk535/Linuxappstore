@@ -4,6 +4,7 @@
 #include "pages/library.h"
 #include "pages/settings.h"
 #include "pages/profile.h"
+#include "pages/updates.h"
 #include <stdlib.h>
 
 AppWindow *app_window_new(GtkApplication *app) {
@@ -11,13 +12,13 @@ AppWindow *app_window_new(GtkApplication *app) {
 
     win->window = GTK_APPLICATION_WINDOW(gtk_application_window_new(app));
     gtk_window_set_title(GTK_WINDOW(win->window), "Linux GitHub App Store");
-    gtk_window_set_default_size(GTK_WINDOW(win->window), 900, 600);
+    gtk_window_set_default_size(GTK_WINDOW(win->window), 1000, 650);
 
     win->main_box = GTK_BOX(gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0));
     gtk_window_set_child(GTK_WINDOW(win->window), GTK_WIDGET(win->main_box));
 
     win->sidebar = GTK_BOX(gtk_box_new(GTK_ORIENTATION_VERTICAL, 0));
-    gtk_widget_set_size_request(GTK_WIDGET(win->sidebar), 240, -1);
+    gtk_widget_set_size_request(GTK_WIDGET(win->sidebar), 220, -1);
     gtk_widget_add_css_class(GTK_WIDGET(win->sidebar), "sidebar");
     gtk_box_append(win->main_box, GTK_WIDGET(win->sidebar));
 
@@ -34,23 +35,24 @@ AppWindow *app_window_new(GtkApplication *app) {
     PageLibrary *library = page_library_new();
     gtk_stack_add_named(win->pages, GTK_WIDGET(library->box), "library");
 
-    PageSettings *settings = page_settings_new();
-    gtk_stack_add_named(win->pages, GTK_WIDGET(settings->box), "settings");
+    PageUpdates *updates = page_updates_new();
+    gtk_stack_add_named(win->pages, GTK_WIDGET(updates->box), "updates");
 
     PageProfile *profile = page_profile_new();
     gtk_stack_add_named(win->pages, GTK_WIDGET(profile->box), "profile");
 
-    gtk_stack_set_visible_child_name(win->pages, "home");
+    PageSettings *settings = page_settings_new();
+    gtk_stack_add_named(win->pages, GTK_WIDGET(settings->box), "settings");
 
+    gtk_stack_set_visible_child_name(win->pages, "home");
     return win;
 }
 
 void app_window_show(AppWindow *win) {
-    gtk_widget_show(GTK_WIDGET(win->window));
+    gtk_window_present(GTK_WINDOW(win->window));
 }
 
 void app_window_switch_page(AppWindow *win, const char *page_name) {
-    if (gtk_stack_get_child_by_name(win->pages, page_name)) {
+    if (gtk_stack_get_child_by_name(win->pages, page_name))
         gtk_stack_set_visible_child_name(win->pages, page_name);
-    }
 }

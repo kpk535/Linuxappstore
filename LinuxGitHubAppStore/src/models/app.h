@@ -4,16 +4,24 @@
 typedef struct {
     char *id;
     char *name;
+    char *full_name;
     char *description;
     char *url;
     char *language;
     int stars;
+    int forks;
 } GitHubRepository;
 
 typedef struct {
     char *name;
-    char *path;
+    char *full_name;
     char *version;
+    char *install_path;
+    char *install_type;
+    char *repo_url;
+    char *installed_at;
+    char *latest_version;
+    int has_update;
 } InstalledApp;
 
 GitHubRepository *repository_new(void);
