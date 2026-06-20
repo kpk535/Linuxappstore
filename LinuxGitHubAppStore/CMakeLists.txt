@@ -37,6 +37,7 @@ set(SOURCES
     src/ui/pages/settings.c
     src/ui/pages/profile.c
     src/ui/pages/updates.c
+    src/ui/pages/sysinfo.c
 )
 
 add_executable(linux-github-appstore ${SOURCES})

@@ -9,5 +9,6 @@ void package_db_add(InstalledApp *app);
 void package_db_remove(const char *full_name);
 InstalledApp *package_db_find(const char *full_name);
 void package_db_update_latest(const char *full_name, const char *latest_version, int has_update);
+void package_db_clear(void);
 
 #endif

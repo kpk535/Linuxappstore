@@ -2,62 +2,173 @@
 #include "../../services/github.h"
 #include "../../services/settings.h"
 #include <stdlib.h>
-#include <json-c/json.h>
 #include <string.h>
+#include <json-c/json.h>
 
-PageProfile *page_profile_new(void) {
-    PageProfile *page = malloc(sizeof(PageProfile));
-
-    page->box = GTK_BOX(gtk_box_new(GTK_ORIENTATION_VERTICAL, 10));
-    gtk_widget_set_margin_start(GTK_WIDGET(page->box), 20);
-    gtk_widget_set_margin_end(GTK_WIDGET(page->box), 20);
-    gtk_widget_set_margin_top(GTK_WIDGET(page->box), 20);
-
-    GtkLabel *title = GTK_LABEL(gtk_label_new("GitHub Profile"));
-    gtk_widget_add_css_class(GTK_WIDGET(title), "title");
-    gtk_box_append(page->box, GTK_WIDGET(title));
-
-    page->username_label = GTK_LABEL(gtk_label_new("Username: Not signed in"));
-    gtk_box_append(page->box, GTK_WIDGET(page->username_label));
-
-    page->name_label = GTK_LABEL(gtk_label_new("Name: -"));
-    gtk_box_append(page->box, GTK_WIDGET(page->name_label));
-
-    GtkButton *go_to_settings = GTK_BUTTON(gtk_button_new_with_label("Go to Settings"));
-    gtk_box_append(page->box, GTK_WIDGET(go_to_settings));
+void page_profile_refresh(PageProfile *page) {
+    gtk_label_set_text(page->status_label, "Loading profile…");
+    gtk_widget_set_sensitive(GTK_WIDGET(page->refresh_btn), FALSE);
 
     AppSettings *settings = settings_load();
-    if (settings->github_token) {
-        GitHubService *service = github_service_new(settings->github_token);
-        char *profile_json = github_get_user_profile(service);
-
-        json_object *parsed = json_tokener_parse(profile_json);
-        if (parsed) {
-            json_object *login_obj, *name_obj;
-            if (json_object_object_get_ex(parsed, "login", &login_obj)) {
-                char username[128];
-                snprintf(username, sizeof(username), "Username: %s", json_object_get_string(login_obj));
-                gtk_label_set_text(page->username_label, username);
-            }
-            if (json_object_object_get_ex(parsed, "name", &name_obj)) {
-                const char *name = json_object_get_string(name_obj);
-                if (name && strlen(name) > 0) {
-                    char full_name[128];
-                    snprintf(full_name, sizeof(full_name), "Name: %s", name);
-                    gtk_label_set_text(page->name_label, full_name);
-                }
-            }
-            json_object_put(parsed);
-        }
-
-        free(profile_json);
-        github_service_free(service);
+    if (!settings->github_token || strlen(settings->github_token) == 0) {
+        gtk_label_set_text(page->login_label,  "Not signed in");
+        gtk_label_set_text(page->name_label,   "Add a GitHub token in Settings to view your profile.");
+        gtk_label_set_text(page->bio_label,    "");
+        gtk_label_set_text(page->repos_val,     "-");
+        gtk_label_set_text(page->followers_val, "-");
+        gtk_label_set_text(page->following_val, "-");
+        gtk_label_set_text(page->status_label,  "No GitHub token configured.");
+        settings_free(settings);
+        gtk_widget_set_sensitive(GTK_WIDGET(page->refresh_btn), TRUE);
+        return;
     }
+
+    GitHubService *svc = github_service_new(settings->github_token);
     settings_free(settings);
+
+    char *json_str = github_get_user_profile(svc);
+    github_service_free(svc);
+
+    if (!json_str) {
+        gtk_label_set_text(page->status_label, "Failed to fetch profile. Check your token.");
+        gtk_widget_set_sensitive(GTK_WIDGET(page->refresh_btn), TRUE);
+        return;
+    }
+
+    json_object *obj = json_tokener_parse(json_str);
+    free(json_str);
+
+    if (!obj) {
+        gtk_label_set_text(page->status_label, "Invalid response from GitHub.");
+        gtk_widget_set_sensitive(GTK_WIDGET(page->refresh_btn), TRUE);
+        return;
+    }
+
+    json_object *j;
+    const char *login = "", *name = "", *bio = "";
+    int repos = 0, followers = 0, following = 0;
+
+    if (json_object_object_get_ex(obj, "login",      &j)) login    = json_object_get_string(j);
+    if (json_object_object_get_ex(obj, "name",       &j)) name     = json_object_get_string(j) ?: "";
+    if (json_object_object_get_ex(obj, "bio",        &j)) bio      = json_object_get_string(j) ?: "";
+    if (json_object_object_get_ex(obj, "public_repos",&j)) repos    = json_object_get_int(j);
+    if (json_object_object_get_ex(obj, "followers",  &j)) followers= json_object_get_int(j);
+    if (json_object_object_get_ex(obj, "following",  &j)) following= json_object_get_int(j);
+
+    char login_markup[256];
+    snprintf(login_markup, sizeof(login_markup), "<b>@%s</b>", login);
+    gtk_label_set_markup(page->login_label, login_markup);
+    gtk_label_set_text(page->name_label, (name && strlen(name)) ? name : "(no display name)");
+    gtk_label_set_text(page->bio_label,  (bio  && strlen(bio))  ? bio  : "");
+
+    char num[16];
+    snprintf(num, sizeof(num), "%d", repos);     gtk_label_set_text(page->repos_val,     num);
+    snprintf(num, sizeof(num), "%d", followers); gtk_label_set_text(page->followers_val, num);
+    snprintf(num, sizeof(num), "%d", following); gtk_label_set_text(page->following_val, num);
+
+    gtk_label_set_text(page->status_label, "");
+    json_object_put(obj);
+    gtk_widget_set_sensitive(GTK_WIDGET(page->refresh_btn), TRUE);
+}
+
+static void on_refresh(GtkButton *btn, gpointer data) {
+    (void)btn;
+    page_profile_refresh((PageProfile *)data);
+}
+
+static GtkWidget *stat_box(const char *label, GtkLabel **out_val) {
+    GtkBox *box = GTK_BOX(gtk_box_new(GTK_ORIENTATION_VERTICAL, 4));
+    gtk_widget_add_css_class(GTK_WIDGET(box), "stat-box");
+    gtk_widget_set_hexpand(GTK_WIDGET(box), TRUE);
+
+    GtkLabel *val = GTK_LABEL(gtk_label_new("-"));
+    gtk_widget_add_css_class(GTK_WIDGET(val), "stat-value");
+    gtk_label_set_xalign(val, 0.5f);
+    gtk_box_append(box, GTK_WIDGET(val));
+
+    GtkLabel *lbl = GTK_LABEL(gtk_label_new(label));
+    gtk_widget_add_css_class(GTK_WIDGET(lbl), "stat-label");
+    gtk_label_set_xalign(lbl, 0.5f);
+    gtk_box_append(box, GTK_WIDGET(lbl));
+
+    if (out_val) *out_val = val;
+    return GTK_WIDGET(box);
+}
+
+PageProfile *page_profile_new(void) {
+    PageProfile *page = calloc(1, sizeof(PageProfile));
+
+    page->box = GTK_BOX(gtk_box_new(GTK_ORIENTATION_VERTICAL, 16));
+    gtk_widget_set_margin_start(GTK_WIDGET(page->box), 24);
+    gtk_widget_set_margin_end(GTK_WIDGET(page->box), 24);
+    gtk_widget_set_margin_top(GTK_WIDGET(page->box), 24);
+    gtk_widget_set_margin_bottom(GTK_WIDGET(page->box), 24);
+
+    /* Header row */
+    GtkBox *hdr = GTK_BOX(gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 12));
+
+    GtkLabel *title = GTK_LABEL(gtk_label_new(NULL));
+    gtk_label_set_markup(title, "<span size='x-large'><b>Profile</b></span>");
+    gtk_label_set_xalign(title, 0.0f);
+    gtk_widget_set_hexpand(GTK_WIDGET(title), TRUE);
+    gtk_box_append(hdr, GTK_WIDGET(title));
+
+    page->refresh_btn = GTK_BUTTON(gtk_button_new_with_label("⟳  Refresh"));
+    gtk_box_append(hdr, GTK_WIDGET(page->refresh_btn));
+    gtk_box_append(page->box, GTK_WIDGET(hdr));
+
+    /* Avatar placeholder + name block */
+    GtkBox *identity = GTK_BOX(gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 16));
+
+    GtkLabel *avatar = GTK_LABEL(gtk_label_new(NULL));
+    gtk_label_set_markup(avatar, "<span size='xxx-large'>👤</span>");
+    gtk_box_append(identity, GTK_WIDGET(avatar));
+
+    GtkBox *name_col = GTK_BOX(gtk_box_new(GTK_ORIENTATION_VERTICAL, 6));
+    gtk_widget_set_hexpand(GTK_WIDGET(name_col), TRUE);
+
+    page->login_label = GTK_LABEL(gtk_label_new("@—"));
+    gtk_label_set_xalign(page->login_label, 0.0f);
+    gtk_label_set_use_markup(page->login_label, TRUE);
+    gtk_box_append(name_col, GTK_WIDGET(page->login_label));
+
+    page->name_label = GTK_LABEL(gtk_label_new(""));
+    gtk_label_set_xalign(page->name_label, 0.0f);
+    gtk_box_append(name_col, GTK_WIDGET(page->name_label));
+
+    page->bio_label = GTK_LABEL(gtk_label_new(""));
+    gtk_label_set_xalign(page->bio_label, 0.0f);
+    gtk_label_set_wrap(page->bio_label, TRUE);
+    gtk_widget_add_css_class(GTK_WIDGET(page->bio_label), "muted");
+    gtk_box_append(name_col, GTK_WIDGET(page->bio_label));
+
+    gtk_box_append(identity, GTK_WIDGET(name_col));
+    gtk_box_append(page->box, GTK_WIDGET(identity));
+
+    /* Separator */
+    GtkSeparator *sep = GTK_SEPARATOR(gtk_separator_new(GTK_ORIENTATION_HORIZONTAL));
+    gtk_widget_add_css_class(GTK_WIDGET(sep), "section-sep");
+    gtk_box_append(page->box, GTK_WIDGET(sep));
+
+    /* Stats row */
+    GtkBox *stats = GTK_BOX(gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 12));
+    gtk_box_append(stats, stat_box("Public Repos", &page->repos_val));
+    gtk_box_append(stats, stat_box("Followers",    &page->followers_val));
+    gtk_box_append(stats, stat_box("Following",    &page->following_val));
+    gtk_box_append(page->box, GTK_WIDGET(stats));
+
+    /* Status message */
+    page->status_label = GTK_LABEL(gtk_label_new(""));
+    gtk_label_set_xalign(page->status_label, 0.0f);
+    gtk_widget_add_css_class(GTK_WIDGET(page->status_label), "muted");
+    gtk_box_append(page->box, GTK_WIDGET(page->status_label));
 
     GtkBox *spacer = GTK_BOX(gtk_box_new(GTK_ORIENTATION_VERTICAL, 0));
     gtk_widget_set_vexpand(GTK_WIDGET(spacer), TRUE);
     gtk_box_append(page->box, GTK_WIDGET(spacer));
 
+    g_signal_connect(page->refresh_btn, "clicked", G_CALLBACK(on_refresh), page);
+
+    page_profile_refresh(page);
     return page;
 }

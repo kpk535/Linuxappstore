@@ -169,6 +169,10 @@ InstalledApp *package_db_find(const char *full_name) {
     return NULL;
 }
 
+void package_db_clear(void) {
+    package_db_save(NULL, 0);
+}
+
 void package_db_update_latest(const char *full_name, const char *latest_version, int has_update) {
     int count = 0;
     InstalledApp **apps = package_db_load(&count);

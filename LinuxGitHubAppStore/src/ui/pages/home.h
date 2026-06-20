@@ -5,10 +5,12 @@
 
 typedef struct {
     GtkBox         *box;
-    GtkStack       *stack;      /* "search" | "detail" */
+    GtkStack       *stack;           /* "search" | "detail" */
 
     /* search sub-page */
     GtkSearchEntry *search_entry;
+    GtkSpinner     *search_spinner;
+    GtkBox         *featured_box;
     GtkListBox     *results_list;
     GtkLabel       *results_hint;
 
@@ -16,6 +18,7 @@ typedef struct {
     GtkLabel       *detail_name;
     GtkLabel       *detail_meta;
     GtkLabel       *detail_desc;
+    GtkSpinner     *rel_spinner;
     GtkListBox     *releases_list;
     GtkLabel       *releases_hint;
     char           *current_full_name;
