@@ -366,7 +366,7 @@
                                 </Grid.ColumnDefinitions>
                                 <TextBlock Text="Results" Style="{StaticResource SectionHeader}" Margin="0"/>
                                 <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                                    <Button Content="◄" Command="{Binding PreviousPageCommand}" Style="{StaticResource GhostButton}">
+                                    <Button Content="◄" Command="{Binding PreviousPageCommand}">
                                         <Button.Style>
                                             <Style TargetType="Button" BasedOn="{StaticResource GhostButton}">
                                                 <Setter Property="Padding" Value="10,6"/>
@@ -578,7 +578,6 @@
 
                                                     <StackPanel Grid.Column="2" VerticalAlignment="Center" MinWidth="110">
                                                         <Button Content="Open GitHub"
-                                                                Style="{StaticResource GhostButton}"
                                                                 Command="{Binding DataContext.OpenCommand, RelativeSource={RelativeSource AncestorType=ListBox}}"
                                                                 CommandParameter="{Binding}">
                                                             <Button.Style>
@@ -600,7 +599,6 @@
                                                             </Button.Style>
                                                         </Button>
                                                         <Button Content="Remove"
-                                                                Style="{StaticResource DangerButton}"
                                                                 Command="{Binding DataContext.RemoveCommand, RelativeSource={RelativeSource AncestorType=ListBox}}"
                                                                 CommandParameter="{Binding}">
                                                             <Button.Style>
@@ -903,7 +901,6 @@
                                 </StackPanel>
                                 <Button Grid.Column="1" Content="✕"
                                         Command="{Binding CloseDetailCommand}"
-                                        Style="{StaticResource GhostButton}"
                                         VerticalAlignment="Top">
                                     <Button.Style>
                                         <Style TargetType="Button" BasedOn="{StaticResource GhostButton}">
@@ -1000,7 +997,6 @@
                                                    FontSize="12" TextTrimming="CharacterEllipsis"/>
                                     </Border>
                                     <Button Grid.Column="1" Content="Copy"
-                                            Style="{StaticResource GhostButton}"
                                             Command="{Binding CopyCloneCommand}"
                                             CommandParameter="{Binding SelectedApp}">
                                         <Button.Style>
