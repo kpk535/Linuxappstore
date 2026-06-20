@@ -1646,6 +1646,19 @@
                                 </StackPanel>
                             </Border>
 
+                            <!-- GitHub bio card (only when connected) -->
+                            <Border Style="{StaticResource StoreCard}"
+                                    Visibility="{Binding Profile.HasGitHubProfile, Converter={StaticResource BoolToVis}}"
+                                    Padding="20">
+                                <StackPanel>
+                                    <TextBlock Text="About" Foreground="{DynamicResource StoreText}"
+                                               FontSize="14" FontWeight="Bold" Margin="0,0,0,8"/>
+                                    <TextBlock Text="{Binding Profile.Bio}"
+                                               Foreground="{DynamicResource StoreSubText}"
+                                               FontSize="13" TextWrapping="Wrap"/>
+                                </StackPanel>
+                            </Border>
+
                             <!-- Windows account -->
                             <Border Style="{StaticResource StoreCard}">
                                 <StackPanel>
@@ -1801,7 +1814,7 @@
                                         <TextBlock Text="Search" Foreground="{DynamicResource StoreText}"
                                                    FontSize="15" FontWeight="Bold"/>
                                     </Border>
-                                    <Border Padding="20,14">
+                                    <Border Style="{StaticResource SettingsRow}">
                                         <Grid>
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="*"/>
@@ -1818,6 +1831,23 @@
                                                      Text="{Binding SettingsResultsPerPage, UpdateSourceTrigger=PropertyChanged}"
                                                      Width="80" FontSize="13" TextAlignment="Center"
                                                      Margin="16,0,0,0" VerticalAlignment="Center"/>
+                                        </Grid>
+                                    </Border>
+                                    <Border Padding="20,14">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <StackPanel VerticalAlignment="Center">
+                                                <TextBlock Text="Include Forks"
+                                                           Foreground="{DynamicResource StoreText}"
+                                                           FontSize="14" FontWeight="SemiBold"/>
+                                                <TextBlock Text="Include forked repositories in search results."
+                                                           Foreground="{DynamicResource StoreSubText}" FontSize="12" Margin="0,2,0,0"/>
+                                            </StackPanel>
+                                            <CheckBox Grid.Column="1"
+                                                      VerticalAlignment="Center" Margin="16,0,0,0"/>
                                         </Grid>
                                     </Border>
                                 </StackPanel>
@@ -1908,7 +1938,7 @@
                                         </Grid>
                                     </Border>
                                     <!-- Minimize on close -->
-                                    <Border Padding="20,14">
+                                    <Border Style="{StaticResource SettingsRow}">
                                         <Grid>
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="*"/>
@@ -1925,6 +1955,62 @@
                                                       IsChecked="{Binding SettingsMinimizeOnClose}"
                                                       VerticalAlignment="Center" Margin="16,0,0,0"/>
                                         </Grid>
+                                    </Border>
+                                    <!-- Start at login -->
+                                    <Border Padding="20,14">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <StackPanel VerticalAlignment="Center">
+                                                <TextBlock Text="Start at Windows Login"
+                                                           Foreground="{DynamicResource StoreText}"
+                                                           FontSize="14" FontWeight="SemiBold"/>
+                                                <TextBlock Text="Automatically launch GitHub App Store when you sign in."
+                                                           Foreground="{DynamicResource StoreSubText}" FontSize="12" Margin="0,2,0,0"/>
+                                            </StackPanel>
+                                            <CheckBox Grid.Column="1"
+                                                      VerticalAlignment="Center" Margin="16,0,0,0"/>
+                                        </Grid>
+                                    </Border>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Cache &amp; Performance section -->
+                            <Border Style="{StaticResource SettingsGroup}">
+                                <StackPanel>
+                                    <Border Padding="20,14" BorderBrush="{DynamicResource StoreBorder}" BorderThickness="0,0,0,1">
+                                        <TextBlock Text="Cache &amp; Performance" Foreground="{DynamicResource StoreText}"
+                                                   FontSize="15" FontWeight="Bold"/>
+                                    </Border>
+                                    <Border Style="{StaticResource SettingsRow}">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <StackPanel VerticalAlignment="Center">
+                                                <TextBlock Text="Enable Search Cache"
+                                                           Foreground="{DynamicResource StoreText}"
+                                                           FontSize="14" FontWeight="SemiBold"/>
+                                                <TextBlock Text="Store search results to reduce API calls."
+                                                           Foreground="{DynamicResource StoreSubText}" FontSize="12" Margin="0,2,0,0"/>
+                                            </StackPanel>
+                                            <CheckBox Grid.Column="1"
+                                                      VerticalAlignment="Center" Margin="16,0,0,0"/>
+                                        </Grid>
+                                    </Border>
+                                    <Border Padding="20,14">
+                                        <Button Content="Clear Cache"
+                                                Width="100"
+                                                HorizontalAlignment="Left">
+                                            <Button.Style>
+                                                <Style TargetType="Button" BasedOn="{StaticResource GhostButton}">
+                                                    <Setter Property="Padding" Value="12,7"/>
+                                                </Style>
+                                            </Button.Style>
+                                        </Button>
                                     </Border>
                                 </StackPanel>
                             </Border>
