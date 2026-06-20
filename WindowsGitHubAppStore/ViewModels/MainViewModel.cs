@@ -30,6 +30,7 @@ public class MainViewModel : INotifyPropertyChanged
     private readonly SystemInfoService _sysInfoService = new();
     private readonly ProcessService _processService = new();
     private readonly EnvVarService _envVarService = new();
+    private readonly GitHubAuthService _authService = new();
 
     private AppSettings _settings;
 
@@ -69,6 +70,10 @@ public class MainViewModel : INotifyPropertyChanged
     // ── Token validation ─────────────────────────────────────────────────────
     private bool   _isTokenValidating;
     private string _tokenValidStatus = string.Empty;
+
+    // ── OAuth Sign-In ────────────────────────────────────────────────────────
+    private bool   _isSigningIn;
+    private string _signInStatus = string.Empty;
 
     // ── Process Manager ──────────────────────────────────────────────────────
     private List<ProcessInfo> _allProcesses = new();
@@ -145,6 +150,11 @@ public class MainViewModel : INotifyPropertyChanged
     public bool   IsTokenValidating  { get => _isTokenValidating;  set { _isTokenValidating  = value; OnPropertyChanged(); } }
     public string TokenValidStatus   { get => _tokenValidStatus;   set { _tokenValidStatus   = value; OnPropertyChanged(); OnPropertyChanged(nameof(HasTokenValidStatus)); } }
     public bool   HasTokenValidStatus => !string.IsNullOrEmpty(_tokenValidStatus);
+
+    // ── Properties: OAuth Sign-In ────────────────────────────────────────────
+    public bool   IsSigningIn  { get => _isSigningIn;  set { _isSigningIn  = value; OnPropertyChanged(); } }
+    public string SignInStatus { get => _signInStatus; set { _signInStatus = value; OnPropertyChanged(); OnPropertyChanged(nameof(HasSignInStatus)); } }
+    public bool   HasSignInStatus => !string.IsNullOrEmpty(_signInStatus);
 
     // ── Properties: Settings ─────────────────────────────────────────────────
     public string SettingsToken
@@ -342,6 +352,8 @@ public class MainViewModel : INotifyPropertyChanged
     public ICommand NewEnvVarCommand            { get; }
     public ICommand SaveEnvVarCommand           { get; }
     public ICommand DeleteEnvVarCommand         { get; }
+    public ICommand SignInWithGitHubCommand     { get; }
+    public ICommand SignOutCommand              { get; }
 
     // ── Constructor ───────────────────────────────────────────────────────────
     public MainViewModel()
@@ -629,6 +641,9 @@ public class MainViewModel : INotifyPropertyChanged
             }
             catch (Exception ex) { EnvVarStatus = "Delete failed: " + ex.Message; }
         });
+
+        SignInWithGitHubCommand = new RelayCommand(async _ => await SignInWithGitHubAsync());
+        SignOutCommand = new RelayCommand(_ => SignOut());
 
         // ── Collection notifications ──────────────────────────────────────────
         InstalledApps.CollectionChanged  += (_, _) => OnPropertyChanged(nameof(HasNoInstalledApps));
@@ -984,6 +999,67 @@ public class MainViewModel : INotifyPropertyChanged
         foreach (var v in _allEnvVars)
             if (string.IsNullOrEmpty(f) || v.Name.Contains(f, StringComparison.OrdinalIgnoreCase) || v.Value.Contains(f, StringComparison.OrdinalIgnoreCase))
                 EnvVariables.Add(v);
+    }
+
+    // ── OAuth Sign-In ─────────────────────────────────────────────────────────
+    private async Task SignInWithGitHubAsync()
+    {
+        IsSigningIn = true;
+        SignInStatus = "Opening GitHub authorization page…";
+        try
+        {
+            var code = await _authService.StartAuthorizationServerAsync();
+            if (string.IsNullOrEmpty(code))
+            {
+                SignInStatus = "✗ Authorization cancelled or timed out";
+                return;
+            }
+
+            var (success, token, error) = await _authService.ExchangeCodeForTokenAsync(code);
+            if (!success)
+            {
+                SignInStatus = $"✗ Authorization failed: {error}";
+                return;
+            }
+
+            _settings.GitHubToken = token;
+            SettingsToken = token;
+            _settingsService.Save(_settings);
+
+            SignInStatus = "✓ Successfully signed in!";
+            StatusText = SignInStatus;
+
+            await LoadProfileAsync();
+        }
+        catch (Exception ex)
+        {
+            SignInStatus = $"✗ Sign-in error: {ex.Message}";
+        }
+        finally { IsSigningIn = false; }
+    }
+
+    private void SignOut()
+    {
+        try
+        {
+            _settings.GitHubToken = string.Empty;
+            SettingsToken = string.Empty;
+            _settingsService.Save(_settings);
+
+            Profile = new UserProfile
+            {
+                WindowsUser = Environment.UserName,
+                ComputerName = Environment.MachineName
+            };
+
+            SignInStatus = "✓ Signed out successfully";
+            StatusText = SignInStatus;
+            OnPropertyChanged(nameof(ShowLoginBanner));
+        }
+        catch (Exception ex)
+        {
+            SignInStatus = $"✗ Sign-out error: {ex.Message}";
+        }
     }
 
     // ── Theme ─────────────────────────────────────────────────────────────────
