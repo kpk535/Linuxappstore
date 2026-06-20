@@ -187,6 +187,64 @@
                             </Button>
 
                             <Separator Margin="0,10"/>
+                            <TextBlock Text="ACCOUNT" Foreground="{DynamicResource StoreSubText}"
+                                       FontSize="10" FontWeight="Bold" Margin="14,0,0,6"/>
+
+                            <!-- Profile -->
+                            <Button Command="{Binding NavigateCommand}" CommandParameter="Profile" HorizontalContentAlignment="Stretch">
+                                <Button.Style>
+                                    <Style TargetType="Button" BasedOn="{StaticResource NavButton}">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsProfilePage}" Value="True">
+                                                <Setter Property="Background" Value="{DynamicResource StoreAccentLight}"/>
+                                                <Setter Property="Foreground" Value="{DynamicResource StoreAccent}"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Button.Style>
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="👤" FontSize="13" Width="22"/>
+                                    <TextBlock Text="Profile" FontSize="14"/>
+                                </StackPanel>
+                            </Button>
+
+                            <!-- Settings -->
+                            <Button Command="{Binding NavigateCommand}" CommandParameter="Settings" HorizontalContentAlignment="Stretch">
+                                <Button.Style>
+                                    <Style TargetType="Button" BasedOn="{StaticResource NavButton}">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsSettingsPage}" Value="True">
+                                                <Setter Property="Background" Value="{DynamicResource StoreAccentLight}"/>
+                                                <Setter Property="Foreground" Value="{DynamicResource StoreAccent}"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Button.Style>
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="⚙" FontSize="13" Width="22"/>
+                                    <TextBlock Text="Settings" FontSize="14"/>
+                                </StackPanel>
+                            </Button>
+
+                            <!-- System Info -->
+                            <Button Command="{Binding NavigateCommand}" CommandParameter="SysInfo" HorizontalContentAlignment="Stretch">
+                                <Button.Style>
+                                    <Style TargetType="Button" BasedOn="{StaticResource NavButton}">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsSysInfoPage}" Value="True">
+                                                <Setter Property="Background" Value="{DynamicResource StoreAccentLight}"/>
+                                                <Setter Property="Foreground" Value="{DynamicResource StoreAccent}"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Button.Style>
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="ℹ" FontSize="13" Width="22"/>
+                                    <TextBlock Text="System Info" FontSize="14"/>
+                                </StackPanel>
+                            </Button>
+
+                            <Separator Margin="0,10"/>
                             <TextBlock Text="BROWSE" Foreground="{DynamicResource StoreSubText}"
                                        FontSize="10" FontWeight="Bold" Margin="14,0,0,6"/>
 
@@ -235,22 +293,53 @@
                         </StackPanel>
                     </ScrollViewer>
 
-                    <!-- Account section -->
-                    <StackPanel Grid.Row="2" Margin="12,0,12,16">
-                        <Separator Margin="0,0,0,10"/>
-                        <TextBlock Text="ACCOUNT" Foreground="{DynamicResource StoreSubText}"
-                                   FontSize="10" FontWeight="Bold" Margin="4,0,0,6"/>
-                        <TextBox Text="{Binding TokenText, UpdateSourceTrigger=PropertyChanged}"
-                                 FontSize="12" Padding="10,7"/>
-                        <Button Content="Save Token" Command="{Binding SaveTokenCommand}" Margin="0,4,0,0">
-                            <Button.Style>
-                                <Style TargetType="Button" BasedOn="{StaticResource GhostButton}">
-                                    <Setter Property="FontSize" Value="12"/>
-                                    <Setter Property="Padding" Value="10,7"/>
-                                </Style>
-                            </Button.Style>
-                        </Button>
-                        <Button Command="{Binding ToggleThemeCommand}" Margin="0,4,0,0">
+                    <!-- Mini profile + theme toggle at sidebar bottom -->
+                    <StackPanel Grid.Row="2" Margin="12,0,12,14">
+                        <Separator Margin="0,0,0,8"/>
+                        <!-- Mini profile card — click navigates to Profile -->
+                        <Border Background="{DynamicResource StoreSurface}"
+                                BorderBrush="{DynamicResource StoreBorder}"
+                                BorderThickness="1" CornerRadius="12" Padding="10,9"
+                                Margin="0,0,0,6" Cursor="Hand">
+                            <Border.InputBindings>
+                                <MouseBinding MouseAction="LeftClick"
+                                              Command="{Binding NavigateCommand}"
+                                              CommandParameter="Profile"/>
+                            </Border.InputBindings>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Border Style="{StaticResource AvatarCircle}"
+                                        Width="32" Height="32" Margin="0,0,9,0">
+                                    <TextBlock Text="{Binding Profile.Initials}"
+                                               Foreground="{DynamicResource StoreAccent}"
+                                               FontSize="14" FontWeight="Bold"
+                                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                                <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                    <TextBlock Text="{Binding Profile.DisplayName}"
+                                               Foreground="{DynamicResource StoreText}"
+                                               FontSize="12" FontWeight="SemiBold"
+                                               TextTrimming="CharacterEllipsis"/>
+                                    <TextBlock Foreground="{DynamicResource StoreSubText}" FontSize="10">
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock">
+                                                <Setter Property="Text" Value="Windows User"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding Profile.HasGitHubProfile}" Value="True">
+                                                        <Setter Property="Text" Value="GitHub Connected"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                    </TextBlock>
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+                        <!-- Theme toggle -->
+                        <Button Command="{Binding ToggleThemeCommand}">
                             <Button.Style>
                                 <Style TargetType="Button" BasedOn="{StaticResource NavButton}">
                                     <Setter Property="Padding" Value="10,7"/>
@@ -1327,6 +1416,623 @@
                                         </DataTemplate>
                                     </ListBox.ItemTemplate>
                                 </ListBox>
+                            </StackPanel>
+                        </ScrollViewer>
+                    </Grid>
+
+                    <!-- ══════════════════════════════════════════════════════
+                         PROFILE PAGE
+                    ══════════════════════════════════════════════════════════ -->
+                    <ScrollViewer Visibility="{Binding IsProfilePage, Converter={StaticResource BoolToVis}}"
+                                  Padding="24,20,24,20">
+                        <StackPanel MaxWidth="760" HorizontalAlignment="Left">
+                            <TextBlock Text="Profile" Style="{StaticResource SectionHeader}"/>
+                            <TextBlock Text="Your GitHub identity and Windows account information."
+                                       Style="{StaticResource PageSubtitle}"/>
+
+                            <!-- Loading indicator -->
+                            <Border Background="{DynamicResource StoreAccentLight}"
+                                    BorderBrush="{DynamicResource StoreAccent}"
+                                    BorderThickness="1" CornerRadius="10" Padding="14,9"
+                                    Margin="0,0,0,12"
+                                    Visibility="{Binding IsProfileLoading, Converter={StaticResource BoolToVis}}">
+                                <TextBlock Text="⟳ Loading profile…" Foreground="{DynamicResource StoreAccent}" FontSize="13"/>
+                            </Border>
+
+                            <!-- Avatar + identity card -->
+                            <Border Style="{StaticResource StoreCard}" Padding="28">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <!-- Avatar -->
+                                    <Border Style="{StaticResource AvatarCircle}" Width="90" Height="90"
+                                            Margin="0,0,24,0" VerticalAlignment="Top">
+                                        <TextBlock Text="{Binding Profile.Initials}"
+                                                   Foreground="{DynamicResource StoreAccent}"
+                                                   FontSize="38" FontWeight="Bold"
+                                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+
+                                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                        <TextBlock Text="{Binding Profile.DisplayName}"
+                                                   Foreground="{DynamicResource StoreText}"
+                                                   FontSize="24" FontWeight="Bold"/>
+                                        <TextBlock Text="{Binding Profile.Login, StringFormat='@{0}'}"
+                                                   Foreground="{DynamicResource StoreAccent}"
+                                                   FontSize="14" Margin="0,3,0,0"
+                                                   Visibility="{Binding Profile.HasGitHubProfile, Converter={StaticResource BoolToVis}}"/>
+                                        <TextBlock Text="{Binding Profile.Bio}"
+                                                   Foreground="{DynamicResource StoreSubText}"
+                                                   FontSize="13" TextWrapping="Wrap"
+                                                   Margin="0,6,0,0"
+                                                   Visibility="{Binding Profile.HasGitHubProfile, Converter={StaticResource BoolToVis}}"/>
+                                        <StackPanel Orientation="Horizontal" Margin="0,6,0,0"
+                                                    Visibility="{Binding Profile.HasGitHubProfile, Converter={StaticResource BoolToVis}}">
+                                            <TextBlock Text="📍 " FontSize="12"/>
+                                            <TextBlock Text="{Binding Profile.Location}"
+                                                       Foreground="{DynamicResource StoreSubText}"
+                                                       FontSize="12"/>
+                                        </StackPanel>
+                                    </StackPanel>
+                                </Grid>
+                            </Border>
+
+                            <!-- GitHub stats (only when connected) -->
+                            <Border Style="{StaticResource StoreCard}"
+                                    Visibility="{Binding Profile.HasGitHubProfile, Converter={StaticResource BoolToVis}}">
+                                <StackPanel>
+                                    <TextBlock Text="GitHub Stats" Foreground="{DynamicResource StoreText}"
+                                               FontSize="14" FontWeight="Bold" Margin="0,0,0,14"/>
+                                    <WrapPanel>
+                                        <Border Style="{StaticResource StatCard}" MinWidth="130">
+                                            <StackPanel>
+                                                <TextBlock Text="Repositories" Foreground="{DynamicResource StoreSubText}" FontSize="11"/>
+                                                <TextBlock Text="{Binding Profile.PublicRepos}"
+                                                           Foreground="{DynamicResource StoreText}"
+                                                           FontSize="26" FontWeight="Bold"/>
+                                            </StackPanel>
+                                        </Border>
+                                        <Border Style="{StaticResource StatCard}" MinWidth="130">
+                                            <StackPanel>
+                                                <TextBlock Text="Followers" Foreground="{DynamicResource StoreSubText}" FontSize="11"/>
+                                                <TextBlock Text="{Binding Profile.Followers}"
+                                                           Foreground="{DynamicResource StoreText}"
+                                                           FontSize="26" FontWeight="Bold"/>
+                                            </StackPanel>
+                                        </Border>
+                                        <Border Style="{StaticResource StatCard}" MinWidth="130">
+                                            <StackPanel>
+                                                <TextBlock Text="Following" Foreground="{DynamicResource StoreSubText}" FontSize="11"/>
+                                                <TextBlock Text="{Binding Profile.Following}"
+                                                           Foreground="{DynamicResource StoreText}"
+                                                           FontSize="26" FontWeight="Bold"/>
+                                            </StackPanel>
+                                        </Border>
+                                    </WrapPanel>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Windows account -->
+                            <Border Style="{StaticResource StoreCard}">
+                                <StackPanel>
+                                    <TextBlock Text="Windows Account" Foreground="{DynamicResource StoreText}"
+                                               FontSize="14" FontWeight="Bold" Margin="0,0,0,12"/>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Border Style="{StaticResource AvatarCircle}" Width="48" Height="48" Margin="0,0,16,0">
+                                            <TextBlock Text="🖥" FontSize="20"
+                                                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        </Border>
+                                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                            <TextBlock Foreground="{DynamicResource StoreText}" FontSize="15" FontWeight="SemiBold">
+                                                <Run Text="{Binding Profile.WindowsUser}"/>
+                                                <Run Text=" @ "/>
+                                                <Run Text="{Binding Profile.ComputerName}"/>
+                                            </TextBlock>
+                                            <TextBlock Text="Local Windows account"
+                                                       Foreground="{DynamicResource StoreSubText}" FontSize="12" Margin="0,2,0,0"/>
+                                        </StackPanel>
+                                    </Grid>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Refresh button -->
+                            <StackPanel Orientation="Horizontal">
+                                <Button Content="Refresh Profile" Command="{Binding LoadProfileCommand}">
+                                    <Button.Style>
+                                        <Style TargetType="Button" BasedOn="{StaticResource GhostButton}">
+                                            <Setter Property="Padding" Value="18,9"/>
+                                        </Style>
+                                    </Button.Style>
+                                </Button>
+                                <Button Content="Go to Settings" Command="{Binding NavigateCommand}" CommandParameter="Settings" Margin="8,3,3,3">
+                                    <Button.Style>
+                                        <Style TargetType="Button" BasedOn="{StaticResource PrimaryButton}">
+                                            <Setter Property="Padding" Value="18,9"/>
+                                        </Style>
+                                    </Button.Style>
+                                </Button>
+                            </StackPanel>
+                        </StackPanel>
+                    </ScrollViewer>
+
+                    <!-- ══════════════════════════════════════════════════════
+                         SETTINGS PAGE
+                    ══════════════════════════════════════════════════════════ -->
+                    <ScrollViewer Visibility="{Binding IsSettingsPage, Converter={StaticResource BoolToVis}}"
+                                  Padding="24,20,24,20">
+                        <StackPanel MaxWidth="680" HorizontalAlignment="Left">
+                            <TextBlock Text="Settings" Style="{StaticResource SectionHeader}"/>
+                            <TextBlock Text="Configure your GitHub App Store preferences. Settings are saved to your user profile."
+                                       Style="{StaticResource PageSubtitle}"/>
+
+                            <!-- GitHub section -->
+                            <Border Style="{StaticResource SettingsGroup}">
+                                <StackPanel>
+                                    <Border Padding="20,14" BorderBrush="{DynamicResource StoreBorder}" BorderThickness="0,0,0,1">
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Text="GitHub" Foreground="{DynamicResource StoreText}"
+                                                       FontSize="15" FontWeight="Bold"/>
+                                        </StackPanel>
+                                    </Border>
+                                    <!-- Token -->
+                                    <Border Style="{StaticResource SettingsRow}">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <StackPanel VerticalAlignment="Center">
+                                                <TextBlock Text="Personal Access Token"
+                                                           Foreground="{DynamicResource StoreText}"
+                                                           FontSize="14" FontWeight="SemiBold"/>
+                                                <TextBlock Text="Increases API rate limit. Required for private repos."
+                                                           Foreground="{DynamicResource StoreSubText}" FontSize="12" Margin="0,2,0,0"/>
+                                            </StackPanel>
+                                            <TextBox Grid.Column="1"
+                                                     Text="{Binding SettingsToken, UpdateSourceTrigger=PropertyChanged}"
+                                                     Width="240" FontSize="13" Margin="16,0,0,0"
+                                                     VerticalAlignment="Center"/>
+                                        </Grid>
+                                    </Border>
+                                    <!-- Last row: no bottom border -->
+                                    <Border Padding="20,14">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <StackPanel VerticalAlignment="Center">
+                                                <TextBlock Text="Auto-check Updates"
+                                                           Foreground="{DynamicResource StoreText}"
+                                                           FontSize="14" FontWeight="SemiBold"/>
+                                                <TextBlock Text="Scan installed apps for new releases when opening the Updates page."
+                                                           Foreground="{DynamicResource StoreSubText}" FontSize="12" Margin="0,2,0,0"/>
+                                            </StackPanel>
+                                            <CheckBox Grid.Column="1"
+                                                      IsChecked="{Binding SettingsAutoUpdate}"
+                                                      VerticalAlignment="Center" Margin="16,0,0,0"/>
+                                        </Grid>
+                                    </Border>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Appearance section -->
+                            <Border Style="{StaticResource SettingsGroup}">
+                                <StackPanel>
+                                    <Border Padding="20,14" BorderBrush="{DynamicResource StoreBorder}" BorderThickness="0,0,0,1">
+                                        <TextBlock Text="Appearance" Foreground="{DynamicResource StoreText}"
+                                                   FontSize="15" FontWeight="Bold"/>
+                                    </Border>
+                                    <Border Padding="20,14">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <StackPanel VerticalAlignment="Center">
+                                                <TextBlock Text="Dark Mode"
+                                                           Foreground="{DynamicResource StoreText}"
+                                                           FontSize="14" FontWeight="SemiBold"/>
+                                                <TextBlock Text="Switch between light and dark themes instantly."
+                                                           Foreground="{DynamicResource StoreSubText}" FontSize="12" Margin="0,2,0,0"/>
+                                            </StackPanel>
+                                            <CheckBox Grid.Column="1"
+                                                      IsChecked="{Binding SettingsDarkMode}"
+                                                      VerticalAlignment="Center" Margin="16,0,0,0"/>
+                                        </Grid>
+                                    </Border>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- General section -->
+                            <Border Style="{StaticResource SettingsGroup}">
+                                <StackPanel>
+                                    <Border Padding="20,14" BorderBrush="{DynamicResource StoreBorder}" BorderThickness="0,0,0,1">
+                                        <TextBlock Text="General" Foreground="{DynamicResource StoreText}"
+                                                   FontSize="15" FontWeight="Bold"/>
+                                    </Border>
+                                    <!-- Download folder -->
+                                    <Border Style="{StaticResource SettingsRow}">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <StackPanel VerticalAlignment="Center">
+                                                <TextBlock Text="Download Folder"
+                                                           Foreground="{DynamicResource StoreText}"
+                                                           FontSize="14" FontWeight="SemiBold"/>
+                                                <TextBlock Text="Where downloaded releases and zip archives are saved."
+                                                           Foreground="{DynamicResource StoreSubText}" FontSize="12" Margin="0,2,0,0"/>
+                                            </StackPanel>
+                                            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Margin="16,0,0,0">
+                                                <TextBox Text="{Binding SettingsDownloadFolder, UpdateSourceTrigger=PropertyChanged}"
+                                                         Width="180" FontSize="12"/>
+                                                <Button Content="Browse…"
+                                                        Command="{Binding BrowseDownloadFolderCommand}"
+                                                        Margin="6,3,3,3">
+                                                    <Button.Style>
+                                                        <Style TargetType="Button" BasedOn="{StaticResource GhostButton}">
+                                                            <Setter Property="Padding" Value="10,7"/>
+                                                            <Setter Property="FontSize" Value="12"/>
+                                                        </Style>
+                                                    </Button.Style>
+                                                </Button>
+                                            </StackPanel>
+                                        </Grid>
+                                    </Border>
+                                    <!-- Notifications toggle -->
+                                    <Border Style="{StaticResource SettingsRow}">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <StackPanel VerticalAlignment="Center">
+                                                <TextBlock Text="Show Notifications"
+                                                           Foreground="{DynamicResource StoreText}"
+                                                           FontSize="14" FontWeight="SemiBold"/>
+                                                <TextBlock Text="Display notifications for install and update completions."
+                                                           Foreground="{DynamicResource StoreSubText}" FontSize="12" Margin="0,2,0,0"/>
+                                            </StackPanel>
+                                            <CheckBox Grid.Column="1"
+                                                      IsChecked="{Binding SettingsShowNotifications}"
+                                                      VerticalAlignment="Center" Margin="16,0,0,0"/>
+                                        </Grid>
+                                    </Border>
+                                    <!-- Minimize on close -->
+                                    <Border Padding="20,14">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <StackPanel VerticalAlignment="Center">
+                                                <TextBlock Text="Minimize to System Tray on Close"
+                                                           Foreground="{DynamicResource StoreText}"
+                                                           FontSize="14" FontWeight="SemiBold"/>
+                                                <TextBlock Text="Keep the app running in the background instead of closing."
+                                                           Foreground="{DynamicResource StoreSubText}" FontSize="12" Margin="0,2,0,0"/>
+                                            </StackPanel>
+                                            <CheckBox Grid.Column="1"
+                                                      IsChecked="{Binding SettingsMinimizeOnClose}"
+                                                      VerticalAlignment="Center" Margin="16,0,0,0"/>
+                                        </Grid>
+                                    </Border>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Save button -->
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,24">
+                                <Button Content="Save Settings" Command="{Binding SaveSettingsCommand}">
+                                    <Button.Style>
+                                        <Style TargetType="Button" BasedOn="{StaticResource PrimaryButton}">
+                                            <Setter Property="Padding" Value="24,10"/>
+                                            <Setter Property="FontSize" Value="14"/>
+                                        </Style>
+                                    </Button.Style>
+                                </Button>
+                                <Border Background="{DynamicResource StoreSuccessLight}"
+                                        BorderBrush="{DynamicResource StoreSuccess}"
+                                        BorderThickness="1" CornerRadius="9"
+                                        Padding="14,10" Margin="10,3,0,3"
+                                        Visibility="{Binding HasSettingsStatus, Converter={StaticResource BoolToVis}}">
+                                    <TextBlock Text="{Binding SettingsStatus}"
+                                               Foreground="{DynamicResource StoreSuccess}"
+                                               FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                </Border>
+                            </StackPanel>
+                        </StackPanel>
+                    </ScrollViewer>
+
+                    <!-- ══════════════════════════════════════════════════════
+                         SYSTEM INFO PAGE
+                    ══════════════════════════════════════════════════════════ -->
+                    <Grid Visibility="{Binding IsSysInfoPage, Converter={StaticResource BoolToVis}}">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+
+                        <Border Grid.Row="0" Background="{DynamicResource StoreSurface}"
+                                BorderBrush="{DynamicResource StoreBorder}" BorderThickness="0,0,0,1"
+                                Padding="24,14">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel>
+                                    <TextBlock Text="System Information" Style="{StaticResource SectionHeader}" Margin="0"/>
+                                    <TextBlock Text="Hardware, OS, memory, storage and network details."
+                                               Foreground="{DynamicResource StoreSubText}" FontSize="13"/>
+                                </StackPanel>
+                                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                                    <TextBlock Text="⟳" Foreground="{DynamicResource StoreAccent}"
+                                               FontSize="18" VerticalAlignment="Center" Margin="0,0,8,0"
+                                               Visibility="{Binding IsSysInfoLoading, Converter={StaticResource BoolToVis}}"/>
+                                    <Button Content="Refresh" Style="{StaticResource GhostButton}"
+                                            Command="{Binding LoadSysInfoCommand}" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+
+                        <ScrollViewer Grid.Row="1" Padding="24,16">
+                            <StackPanel>
+                                <!-- Empty state -->
+                                <Border Style="{StaticResource StoreCard}"
+                                        Visibility="{Binding IsSysInfoNotLoaded, Converter={StaticResource BoolToVis}}">
+                                    <StackPanel HorizontalAlignment="Center" Margin="0,20">
+                                        <TextBlock Text="ℹ" FontSize="48" HorizontalAlignment="Center"
+                                                   Foreground="{DynamicResource StoreAccent}"/>
+                                        <TextBlock Text="Click Refresh to load system information"
+                                                   Foreground="{DynamicResource StoreSubText}"
+                                                   FontSize="16" HorizontalAlignment="Center" Margin="0,12,0,4"/>
+                                        <TextBlock Text="Shows OS, CPU, RAM, disk usage, and network adapters."
+                                                   Foreground="{DynamicResource StoreSubText}"
+                                                   FontSize="13" HorizontalAlignment="Center"/>
+                                    </StackPanel>
+                                </Border>
+
+                                <!-- Content (only when loaded) -->
+                                <StackPanel Visibility="{Binding IsSysInfoLoaded, Converter={StaticResource BoolToVis}}">
+
+                                    <!-- OS & CPU stat cards -->
+                                    <TextBlock Text="System" Foreground="{DynamicResource StoreText}"
+                                               FontSize="15" FontWeight="Bold" Margin="0,0,0,10"/>
+                                    <WrapPanel Margin="0,0,0,6">
+                                        <Border Style="{StaticResource StatCard}" MinWidth="200">
+                                            <StackPanel>
+                                                <TextBlock Text="Operating System" Foreground="{DynamicResource StoreSubText}" FontSize="11" Margin="0,0,0,4"/>
+                                                <TextBlock Text="{Binding SysInfo.OsDescription}"
+                                                           Foreground="{DynamicResource StoreText}"
+                                                           FontSize="13" FontWeight="Bold" TextWrapping="Wrap"/>
+                                            </StackPanel>
+                                        </Border>
+                                        <Border Style="{StaticResource StatCard}" MinWidth="180">
+                                            <StackPanel>
+                                                <TextBlock Text="CPU" Foreground="{DynamicResource StoreSubText}" FontSize="11" Margin="0,0,0,4"/>
+                                                <TextBlock Text="{Binding SysInfo.CpuName}"
+                                                           Foreground="{DynamicResource StoreText}"
+                                                           FontSize="13" FontWeight="Bold" TextWrapping="Wrap"/>
+                                            </StackPanel>
+                                        </Border>
+                                        <Border Style="{StaticResource StatCard}">
+                                            <StackPanel>
+                                                <TextBlock Text="Processor Cores" Foreground="{DynamicResource StoreSubText}" FontSize="11" Margin="0,0,0,4"/>
+                                                <TextBlock Text="{Binding SysInfo.ProcessorCount}"
+                                                           Foreground="{DynamicResource StoreText}"
+                                                           FontSize="22" FontWeight="Bold"/>
+                                            </StackPanel>
+                                        </Border>
+                                        <Border Style="{StaticResource StatCard}">
+                                            <StackPanel>
+                                                <TextBlock Text="Architecture" Foreground="{DynamicResource StoreSubText}" FontSize="11" Margin="0,0,0,4"/>
+                                                <TextBlock Text="{Binding SysInfo.Architecture}"
+                                                           Foreground="{DynamicResource StoreText}"
+                                                           FontSize="18" FontWeight="Bold"/>
+                                            </StackPanel>
+                                        </Border>
+                                        <Border Style="{StaticResource StatCard}">
+                                            <StackPanel>
+                                                <TextBlock Text="Uptime" Foreground="{DynamicResource StoreSubText}" FontSize="11" Margin="0,0,0,4"/>
+                                                <TextBlock Text="{Binding SysInfo.Uptime}"
+                                                           Foreground="{DynamicResource StoreText}"
+                                                           FontSize="18" FontWeight="Bold"/>
+                                            </StackPanel>
+                                        </Border>
+                                        <Border Style="{StaticResource StatCard}" MinWidth="180">
+                                            <StackPanel>
+                                                <TextBlock Text=".NET Runtime" Foreground="{DynamicResource StoreSubText}" FontSize="11" Margin="0,0,0,4"/>
+                                                <TextBlock Text="{Binding SysInfo.DotNetVersion}"
+                                                           Foreground="{DynamicResource StoreAccent}"
+                                                           FontSize="12" FontWeight="Bold" TextWrapping="Wrap"/>
+                                            </StackPanel>
+                                        </Border>
+                                    </WrapPanel>
+
+                                    <!-- Memory section -->
+                                    <Border Style="{StaticResource StoreCard}" Margin="0,4,0,10">
+                                        <StackPanel>
+                                            <Grid Margin="0,0,0,10">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+                                                <TextBlock Text="Memory (RAM)"
+                                                           Foreground="{DynamicResource StoreText}"
+                                                           FontSize="15" FontWeight="Bold"/>
+                                                <TextBlock Grid.Column="1"
+                                                           Text="{Binding SysInfo.RamUsedPercent, StringFormat={}{0}% used}"
+                                                           Foreground="{DynamicResource StoreSubText}" FontSize="13"/>
+                                            </Grid>
+                                            <TextBlock Text="{Binding SysInfo.RamDisplay}"
+                                                       Foreground="{DynamicResource StoreSubText}"
+                                                       FontSize="13" Margin="0,0,0,10"/>
+                                            <!-- RAM bar — color based on usage -->
+                                            <ProgressBar Value="{Binding SysInfo.RamUsedPercent}" Maximum="100" Height="10">
+                                                <ProgressBar.Style>
+                                                    <Style TargetType="ProgressBar" BasedOn="{StaticResource {x:Type ProgressBar}}">
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding SysInfo.RamUsedPercent}" Value="90">
+                                                                <Setter Property="Foreground" Value="{DynamicResource StoreDanger}"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </ProgressBar.Style>
+                                            </ProgressBar>
+                                        </StackPanel>
+                                    </Border>
+
+                                    <!-- Disks section -->
+                                    <TextBlock Text="Storage" Foreground="{DynamicResource StoreText}"
+                                               FontSize="15" FontWeight="Bold" Margin="0,4,0,10"/>
+                                    <ListBox ItemsSource="{Binding SysInfo.Disks}" Margin="0,0,0,4">
+                                        <ListBox.ItemTemplate>
+                                            <DataTemplate>
+                                                <Border Style="{StaticResource StoreCard}">
+                                                    <Grid>
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="*"/>
+                                                            <ColumnDefinition Width="Auto"/>
+                                                        </Grid.ColumnDefinitions>
+                                                        <StackPanel>
+                                                            <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                                                                <TextBlock Text="{Binding LabelDisplay}"
+                                                                           Foreground="{DynamicResource StoreText}"
+                                                                           FontSize="15" FontWeight="Bold"/>
+                                                                <Border Background="{DynamicResource StoreSurfaceAlt}"
+                                                                        BorderBrush="{DynamicResource StoreBorder}"
+                                                                        BorderThickness="1" CornerRadius="6"
+                                                                        Padding="8,2" Margin="10,0,0,0" VerticalAlignment="Center">
+                                                                    <TextBlock Text="{Binding DriveFormat}"
+                                                                               Foreground="{DynamicResource StoreSubText}" FontSize="11"/>
+                                                                </Border>
+                                                            </StackPanel>
+                                                            <TextBlock Text="{Binding SummaryDisplay}"
+                                                                       Foreground="{DynamicResource StoreSubText}"
+                                                                       FontSize="13" Margin="0,0,0,8"/>
+                                                            <ProgressBar Value="{Binding UsedPercent}" Maximum="100" Height="8">
+                                                                <ProgressBar.Style>
+                                                                    <Style TargetType="ProgressBar" BasedOn="{StaticResource {x:Type ProgressBar}}">
+                                                                        <Style.Triggers>
+                                                                            <DataTrigger Binding="{Binding UsedPercent}" Value="90">
+                                                                                <Setter Property="Foreground" Value="{DynamicResource StoreDanger}"/>
+                                                                            </DataTrigger>
+                                                                        </Style.Triggers>
+                                                                    </Style>
+                                                                </ProgressBar.Style>
+                                                            </ProgressBar>
+                                                        </StackPanel>
+                                                        <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="20,0,0,0" MinWidth="100">
+                                                            <TextBlock Text="{Binding FreeDisplay}"
+                                                                       Foreground="{DynamicResource StoreSuccess}"
+                                                                       FontSize="16" FontWeight="Bold" HorizontalAlignment="Right"/>
+                                                            <TextBlock Text="free" Foreground="{DynamicResource StoreSubText}"
+                                                                       FontSize="11" HorizontalAlignment="Right"/>
+                                                            <TextBlock Text="{Binding TotalDisplay}"
+                                                                       Foreground="{DynamicResource StoreSubText}"
+                                                                       FontSize="11" HorizontalAlignment="Right" Margin="0,4,0,0"/>
+                                                        </StackPanel>
+                                                    </Grid>
+                                                </Border>
+                                            </DataTemplate>
+                                        </ListBox.ItemTemplate>
+                                    </ListBox>
+
+                                    <!-- Network section -->
+                                    <TextBlock Text="Network Adapters" Foreground="{DynamicResource StoreText}"
+                                               FontSize="15" FontWeight="Bold" Margin="0,4,0,10"/>
+                                    <ListBox ItemsSource="{Binding SysInfo.NetworkAdapters}">
+                                        <ListBox.ItemTemplate>
+                                            <DataTemplate>
+                                                <Border Style="{StaticResource StoreCard}">
+                                                    <Grid>
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="*"/>
+                                                            <ColumnDefinition Width="Auto"/>
+                                                        </Grid.ColumnDefinitions>
+                                                        <StackPanel>
+                                                            <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                                                                <TextBlock Text="{Binding Name}"
+                                                                           Foreground="{DynamicResource StoreText}"
+                                                                           FontSize="14" FontWeight="Bold"/>
+                                                                <!-- Up/Down badge -->
+                                                                <Border Margin="10,0,0,0" Padding="8,2" CornerRadius="8" VerticalAlignment="Center">
+                                                                    <Border.Style>
+                                                                        <Style TargetType="Border">
+                                                                            <Setter Property="Background" Value="{DynamicResource StoreSuccessLight}"/>
+                                                                            <Setter Property="BorderBrush" Value="{DynamicResource StoreSuccess}"/>
+                                                                            <Setter Property="BorderThickness" Value="1"/>
+                                                                            <Style.Triggers>
+                                                                                <DataTrigger Binding="{Binding IsUp}" Value="False">
+                                                                                    <Setter Property="Background" Value="{DynamicResource StoreSurfaceAlt}"/>
+                                                                                    <Setter Property="BorderBrush" Value="{DynamicResource StoreBorder}"/>
+                                                                                </DataTrigger>
+                                                                            </Style.Triggers>
+                                                                        </Style>
+                                                                    </Border.Style>
+                                                                    <TextBlock Text="{Binding Status}" FontSize="11" FontWeight="SemiBold">
+                                                                        <TextBlock.Style>
+                                                                            <Style TargetType="TextBlock">
+                                                                                <Setter Property="Foreground" Value="{DynamicResource StoreSuccess}"/>
+                                                                                <Style.Triggers>
+                                                                                    <DataTrigger Binding="{Binding IsUp}" Value="False">
+                                                                                        <Setter Property="Foreground" Value="{DynamicResource StoreSubText}"/>
+                                                                                    </DataTrigger>
+                                                                                </Style.Triggers>
+                                                                            </Style>
+                                                                        </TextBlock.Style>
+                                                                    </TextBlock>
+                                                                </Border>
+                                                            </StackPanel>
+                                                            <TextBlock Text="{Binding Description}"
+                                                                       Foreground="{DynamicResource StoreSubText}"
+                                                                       FontSize="12" Margin="0,0,0,6"/>
+                                                            <StackPanel Orientation="Horizontal">
+                                                                <Border Background="{DynamicResource StoreSurfaceAlt}"
+                                                                        BorderBrush="{DynamicResource StoreBorder}"
+                                                                        BorderThickness="1" CornerRadius="6" Padding="8,3" Margin="0,0,6,0">
+                                                                    <StackPanel Orientation="Horizontal">
+                                                                        <TextBlock Text="IP: " Foreground="{DynamicResource StoreSubText}" FontSize="11"/>
+                                                                        <TextBlock Text="{Binding IpAddress}"
+                                                                                   Foreground="{DynamicResource StoreText}"
+                                                                                   FontSize="11" FontFamily="Consolas"/>
+                                                                    </StackPanel>
+                                                                </Border>
+                                                                <Border Background="{DynamicResource StoreSurfaceAlt}"
+                                                                        BorderBrush="{DynamicResource StoreBorder}"
+                                                                        BorderThickness="1" CornerRadius="6" Padding="8,3" Margin="0,0,6,0">
+                                                                    <StackPanel Orientation="Horizontal">
+                                                                        <TextBlock Text="MAC: " Foreground="{DynamicResource StoreSubText}" FontSize="11"/>
+                                                                        <TextBlock Text="{Binding MacAddress}"
+                                                                                   Foreground="{DynamicResource StoreSubText}"
+                                                                                   FontSize="11" FontFamily="Consolas"/>
+                                                                    </StackPanel>
+                                                                </Border>
+                                                            </StackPanel>
+                                                        </StackPanel>
+                                                        <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="16,0,0,0">
+                                                            <TextBlock Text="{Binding Speed}"
+                                                                       Foreground="{DynamicResource StoreAccent}"
+                                                                       FontSize="15" FontWeight="Bold" HorizontalAlignment="Right"/>
+                                                            <TextBlock Text="Link speed" Foreground="{DynamicResource StoreSubText}"
+                                                                       FontSize="11" HorizontalAlignment="Right"/>
+                                                        </StackPanel>
+                                                    </Grid>
+                                                </Border>
+                                            </DataTemplate>
+                                        </ListBox.ItemTemplate>
+                                    </ListBox>
+
+                                </StackPanel>
                             </StackPanel>
                         </ScrollViewer>
                     </Grid>

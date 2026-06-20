@@ -24,6 +24,11 @@ public class MainViewModel : INotifyPropertyChanged
     private readonly WingetService _winget = new();
     private readonly WindowsAppsService _windowsAppsService = new();
     private readonly StartupService _startupService = new();
+    private readonly SettingsService _settingsService = new();
+    private readonly UserProfileService _profileService = new();
+    private readonly SystemInfoService _sysInfoService = new();
+
+    private AppSettings _settings;
 
     private string _searchText = "windows app";
     private int _searchPage = 1;
@@ -36,7 +41,6 @@ public class MainViewModel : INotifyPropertyChanged
     private bool _showDetail;
     private GitHubRepository? _selectedApp;
     private string _selectedAppLatestVersion = string.Empty;
-    private string _tokenText = string.Empty;
     private string _cleanStatus = string.Empty;
     private int _updateCount;
     private bool _isDarkMode;
@@ -51,6 +55,14 @@ public class MainViewModel : INotifyPropertyChanged
 
     private string _startupStatus = string.Empty;
 
+    private UserProfile _profile = new();
+    private SystemSnapshot? _sysInfo;
+    private bool _isProfileLoading;
+    private bool _isSysInfoLoading;
+    private string _settingsStatus = string.Empty;
+
+    // ── Basic properties ────────────────────────────────────────────────────
+
     public string SearchText { get => _searchText; set { _searchText = value; OnPropertyChanged(); } }
     public int SearchPage { get => _searchPage; set { _searchPage = value; OnPropertyChanged(); } }
     public string StatusText { get => _statusText; set { _statusText = value; OnPropertyChanged(); } }
@@ -61,7 +73,6 @@ public class MainViewModel : INotifyPropertyChanged
     public bool ShowDetail { get => _showDetail; set { _showDetail = value; OnPropertyChanged(); } }
     public GitHubRepository? SelectedApp { get => _selectedApp; set { _selectedApp = value; OnPropertyChanged(); } }
     public string SelectedAppLatestVersion { get => _selectedAppLatestVersion; set { _selectedAppLatestVersion = value; OnPropertyChanged(); } }
-    public string TokenText { get => _tokenText; set { _tokenText = value; OnPropertyChanged(); } }
     public string CleanStatus { get => _cleanStatus; set { _cleanStatus = value; OnPropertyChanged(); OnPropertyChanged(nameof(HasCleanStatus)); } }
     public bool IsDarkMode { get => _isDarkMode; set { _isDarkMode = value; OnPropertyChanged(); } }
 
@@ -80,6 +91,88 @@ public class MainViewModel : INotifyPropertyChanged
     public string WindowsAppsStatus { get => _windowsAppsStatus; set { _windowsAppsStatus = value; OnPropertyChanged(); } }
     public string StartupStatus { get => _startupStatus; set { _startupStatus = value; OnPropertyChanged(); } }
 
+    // ── Profile / SysInfo ───────────────────────────────────────────────────
+
+    public UserProfile Profile
+    {
+        get => _profile;
+        set { _profile = value; OnPropertyChanged(); }
+    }
+
+    public SystemSnapshot? SysInfo
+    {
+        get => _sysInfo;
+        set
+        {
+            _sysInfo = value;
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(IsSysInfoLoaded));
+            OnPropertyChanged(nameof(IsSysInfoNotLoaded));
+        }
+    }
+
+    public bool IsProfileLoading
+    {
+        get => _isProfileLoading;
+        set { _isProfileLoading = value; OnPropertyChanged(); }
+    }
+
+    public bool IsSysInfoLoading
+    {
+        get => _isSysInfoLoading;
+        set { _isSysInfoLoading = value; OnPropertyChanged(); }
+    }
+
+    public bool IsSysInfoLoaded    => _sysInfo != null;
+    public bool IsSysInfoNotLoaded => _sysInfo == null;
+
+    public string SettingsStatus
+    {
+        get => _settingsStatus;
+        set { _settingsStatus = value; OnPropertyChanged(); OnPropertyChanged(nameof(HasSettingsStatus)); }
+    }
+    public bool HasSettingsStatus => !string.IsNullOrEmpty(_settingsStatus);
+
+    // ── Settings bound properties ────────────────────────────────────────────
+
+    public string SettingsToken
+    {
+        get => _settings.GitHubToken;
+        set { _settings.GitHubToken = value; OnPropertyChanged(); }
+    }
+
+    public bool SettingsDarkMode
+    {
+        get => _settings.IsDarkMode;
+        set { _settings.IsDarkMode = value; OnPropertyChanged(); ApplyTheme(value); }
+    }
+
+    public bool SettingsAutoUpdate
+    {
+        get => _settings.AutoCheckUpdates;
+        set { _settings.AutoCheckUpdates = value; OnPropertyChanged(); }
+    }
+
+    public string SettingsDownloadFolder
+    {
+        get => _settings.DownloadFolder;
+        set { _settings.DownloadFolder = value; OnPropertyChanged(); }
+    }
+
+    public bool SettingsShowNotifications
+    {
+        get => _settings.ShowNotifications;
+        set { _settings.ShowNotifications = value; OnPropertyChanged(); }
+    }
+
+    public bool SettingsMinimizeOnClose
+    {
+        get => _settings.MinimizeOnClose;
+        set { _settings.MinimizeOnClose = value; OnPropertyChanged(); }
+    }
+
+    // ── Update count ────────────────────────────────────────────────────────
+
     public int UpdateCount
     {
         get => _updateCount;
@@ -87,6 +180,8 @@ public class MainViewModel : INotifyPropertyChanged
     }
     public bool HasPendingUpdates => _updateCount > 0;
     public string UpdateCountText => _updateCount > 0 ? _updateCount.ToString() : string.Empty;
+
+    // ── Current page ────────────────────────────────────────────────────────
 
     public string CurrentPage
     {
@@ -102,8 +197,12 @@ public class MainViewModel : INotifyPropertyChanged
             OnPropertyChanged(nameof(IsWindowsAppsPage));
             OnPropertyChanged(nameof(IsStartupPage));
             OnPropertyChanged(nameof(IsWingetPage));
+            OnPropertyChanged(nameof(IsProfilePage));
+            OnPropertyChanged(nameof(IsSettingsPage));
+            OnPropertyChanged(nameof(IsSysInfoPage));
         }
     }
+
     public bool IsHomePage       => _currentPage == "Home";
     public bool IsLibraryPage    => _currentPage == "Library";
     public bool IsUpdatesPage    => _currentPage == "Updates";
@@ -111,6 +210,11 @@ public class MainViewModel : INotifyPropertyChanged
     public bool IsWindowsAppsPage => _currentPage == "WindowsApps";
     public bool IsStartupPage    => _currentPage == "Startup";
     public bool IsWingetPage     => _currentPage == "Winget";
+    public bool IsProfilePage    => _currentPage == "Profile";
+    public bool IsSettingsPage   => _currentPage == "Settings";
+    public bool IsSysInfoPage    => _currentPage == "SysInfo";
+
+    // ── Collections ─────────────────────────────────────────────────────────
 
     public ObservableCollection<GitHubRepository> Repositories  { get; } = new();
     public ObservableCollection<GitHubRepository> FeaturedApps  { get; } = new();
@@ -121,47 +225,66 @@ public class MainViewModel : INotifyPropertyChanged
     public ObservableCollection<StartupEntry>     StartupEntries { get; } = new();
     public ObservableCollection<CleanerTarget>    CleanerTargets { get; } = new();
 
-    public bool HasNoInstalledApps   => InstalledApps.Count == 0;
-    public bool HasCleanStatus       => !string.IsNullOrEmpty(_cleanStatus);
-    public bool HasNoWindowsApps     => WindowsApps.Count == 0;
-    public bool HasNoStartupEntries  => StartupEntries.Count == 0;
-    public bool HasNoWingetResults   => WingetResults.Count == 0;
-    public bool HasNoCleanerTargets  => CleanerTargets.Count == 0;
+    public bool HasNoInstalledApps  => InstalledApps.Count == 0;
+    public bool HasCleanStatus      => !string.IsNullOrEmpty(_cleanStatus);
+    public bool HasNoWindowsApps    => WindowsApps.Count == 0;
+    public bool HasNoStartupEntries => StartupEntries.Count == 0;
+    public bool HasNoWingetResults  => WingetResults.Count == 0;
+    public bool HasNoCleanerTargets => CleanerTargets.Count == 0;
 
-    public ICommand SearchCommand          { get; }
-    public ICommand NextPageCommand        { get; }
-    public ICommand PreviousPageCommand    { get; }
-    public ICommand OpenCommand            { get; }
-    public ICommand DownloadCommand        { get; }
-    public ICommand InstallCommand         { get; }
-    public ICommand CopyCloneCommand       { get; }
-    public ICommand CategoryCommand        { get; }
-    public ICommand SaveTokenCommand       { get; }
-    public ICommand LoadInstalledCommand   { get; }
-    public ICommand CheckUpdatesCommand    { get; }
-    public ICommand NavigateCommand        { get; }
-    public ICommand RemoveCommand          { get; }
-    public ICommand UpgradeCommand         { get; }
-    public ICommand ShowDetailCommand      { get; }
-    public ICommand CloseDetailCommand     { get; }
-    public ICommand CleanCacheCommand      { get; }
-    public ICommand CleanTargetCommand     { get; }
-    public ICommand ScanCleanerCommand     { get; }
-    public ICommand UpdateAllCommand       { get; }
-    public ICommand ToggleThemeCommand     { get; }
-    public ICommand WingetSearchCommand    { get; }
-    public ICommand WingetInstallCommand   { get; }
-    public ICommand WingetUpgradeCommand   { get; }
-    public ICommand WingetUninstallCommand { get; }
-    public ICommand LoadWindowsAppsCommand     { get; }
-    public ICommand UninstallWindowsAppCommand { get; }
-    public ICommand LoadStartupCommand     { get; }
-    public ICommand DisableStartupCommand  { get; }
-    public ICommand EnableStartupCommand   { get; }
-    public ICommand DeleteStartupCommand   { get; }
+    // ── Commands ─────────────────────────────────────────────────────────────
+
+    public ICommand SearchCommand               { get; }
+    public ICommand NextPageCommand             { get; }
+    public ICommand PreviousPageCommand         { get; }
+    public ICommand OpenCommand                 { get; }
+    public ICommand DownloadCommand             { get; }
+    public ICommand InstallCommand              { get; }
+    public ICommand CopyCloneCommand            { get; }
+    public ICommand CategoryCommand             { get; }
+    public ICommand LoadInstalledCommand        { get; }
+    public ICommand CheckUpdatesCommand         { get; }
+    public ICommand NavigateCommand             { get; }
+    public ICommand RemoveCommand               { get; }
+    public ICommand UpgradeCommand              { get; }
+    public ICommand ShowDetailCommand           { get; }
+    public ICommand CloseDetailCommand          { get; }
+    public ICommand CleanCacheCommand           { get; }
+    public ICommand CleanTargetCommand          { get; }
+    public ICommand ScanCleanerCommand          { get; }
+    public ICommand UpdateAllCommand            { get; }
+    public ICommand ToggleThemeCommand          { get; }
+    public ICommand WingetSearchCommand         { get; }
+    public ICommand WingetInstallCommand        { get; }
+    public ICommand WingetUpgradeCommand        { get; }
+    public ICommand WingetUninstallCommand      { get; }
+    public ICommand LoadWindowsAppsCommand      { get; }
+    public ICommand UninstallWindowsAppCommand  { get; }
+    public ICommand LoadStartupCommand          { get; }
+    public ICommand DisableStartupCommand       { get; }
+    public ICommand EnableStartupCommand        { get; }
+    public ICommand DeleteStartupCommand        { get; }
+    public ICommand LoadProfileCommand          { get; }
+    public ICommand SaveSettingsCommand         { get; }
+    public ICommand BrowseDownloadFolderCommand { get; }
+    public ICommand LoadSysInfoCommand          { get; }
+
+    // ── Constructor ──────────────────────────────────────────────────────────
 
     public MainViewModel()
     {
+        _settings = _settingsService.Load();
+
+        // Apply persisted dark mode
+        if (_settings.IsDarkMode) ApplyTheme(true);
+
+        // Seed profile with local user info; GitHub data loaded on navigate
+        _profile = new UserProfile
+        {
+            WindowsUser  = Environment.UserName,
+            ComputerName = Environment.MachineName
+        };
+
         SearchCommand       = new RelayCommand(async _ => { SearchPage = 1; await SearchAsync(); });
         NextPageCommand     = new RelayCommand(async _ => { SearchPage++; await SearchAsync(); });
         PreviousPageCommand = new RelayCommand(async _ => { if (SearchPage > 1) { SearchPage--; await SearchAsync(); } });
@@ -198,14 +321,6 @@ public class MainViewModel : INotifyPropertyChanged
             await SearchAsync();
         });
 
-        SaveTokenCommand = new RelayCommand(_ =>
-        {
-            _gitHubService.AccessToken  = TokenText;
-            _releaseService.AccessToken = TokenText;
-            _scanner.AccessToken        = TokenText;
-            StatusText = "GitHub token saved.";
-        });
-
         LoadInstalledCommand = new RelayCommand(async _ => await LoadInstalledAsync());
         CheckUpdatesCommand  = new RelayCommand(async _ => await CheckUpdatesAsync());
 
@@ -214,18 +329,20 @@ public class MainViewModel : INotifyPropertyChanged
             CurrentPage = p?.ToString() ?? "Home";
             switch (CurrentPage)
             {
-                case "Cleaner":     _ = LoadCleanerAsync();      break;
-                case "Library":     _ = LoadInstalledAsync();    break;
-                case "Updates":     _ = CheckUpdatesAsync();     break;
-                case "WindowsApps": _ = LoadWindowsAppsAsync();  break;
-                case "Startup":     _ = LoadStartupAsync();      break;
-                case "Winget":      _ = LoadWingetInstalledAsync(); break;
+                case "Cleaner":     _ = LoadCleanerAsync();           break;
+                case "Library":     _ = LoadInstalledAsync();         break;
+                case "Updates":     _ = CheckUpdatesAsync();          break;
+                case "WindowsApps": _ = LoadWindowsAppsAsync();       break;
+                case "Startup":     _ = LoadStartupAsync();           break;
+                case "Winget":      _ = LoadWingetInstalledAsync();   break;
+                case "Profile":     _ = LoadProfileAsync();           break;
+                case "SysInfo":     _ = LoadSysInfoAsync();           break;
             }
         });
 
-        RemoveCommand     = new RelayCommand(async r => await RemoveAsync(r));
-        UpgradeCommand    = new RelayCommand(async r => await UpgradeAsync(r));
-        ShowDetailCommand = new RelayCommand(async r => await ShowDetailAsync(r));
+        RemoveCommand      = new RelayCommand(async r => await RemoveAsync(r));
+        UpgradeCommand     = new RelayCommand(async r => await UpgradeAsync(r));
+        ShowDetailCommand  = new RelayCommand(async r => await ShowDetailAsync(r));
         CloseDetailCommand = new RelayCommand(_ => ShowDetail = false);
 
         ScanCleanerCommand = new RelayCommand(async _ => await LoadCleanerAsync());
@@ -245,7 +362,7 @@ public class MainViewModel : INotifyPropertyChanged
         });
 
         UpdateAllCommand   = new RelayCommand(async _ => await UpdateAllAsync());
-        ToggleThemeCommand = new RelayCommand(_ => ToggleTheme());
+        ToggleThemeCommand = new RelayCommand(_ => ApplyTheme(!IsDarkMode));
 
         // ── Winget ──────────────────────────────────────────────────────────
         WingetSearchCommand = new RelayCommand(async _ =>
@@ -329,6 +446,35 @@ public class MainViewModel : INotifyPropertyChanged
             StatusText    = StartupStatus;
         });
 
+        // ── Profile & Settings ───────────────────────────────────────────────
+        LoadProfileCommand = new RelayCommand(async _ => await LoadProfileAsync());
+
+        SaveSettingsCommand = new RelayCommand(_ =>
+        {
+            _settings.IsDarkMode = IsDarkMode;
+            _settingsService.Save(_settings);
+            _gitHubService.AccessToken  = _settings.GitHubToken;
+            _releaseService.AccessToken = _settings.GitHubToken;
+            _scanner.AccessToken        = _settings.GitHubToken;
+            SettingsStatus = "Settings saved successfully.";
+            StatusText     = "Settings saved.";
+        });
+
+        BrowseDownloadFolderCommand = new RelayCommand(_ =>
+        {
+            var dialog = new Microsoft.Win32.OpenFolderDialog
+            {
+                Title            = "Select Download Folder",
+                InitialDirectory = string.IsNullOrEmpty(_settings.DownloadFolder)
+                    ? Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)
+                    : _settings.DownloadFolder
+            };
+            if (dialog.ShowDialog() == true)
+                SettingsDownloadFolder = dialog.FolderName;
+        });
+
+        LoadSysInfoCommand = new RelayCommand(async _ => await LoadSysInfoAsync());
+
         // ── Collection change notifications ──────────────────────────────────
         InstalledApps.CollectionChanged  += (_, _) => OnPropertyChanged(nameof(HasNoInstalledApps));
         WindowsApps.CollectionChanged    += (_, _) => OnPropertyChanged(nameof(HasNoWindowsApps));
@@ -336,12 +482,20 @@ public class MainViewModel : INotifyPropertyChanged
         WingetResults.CollectionChanged  += (_, _) => OnPropertyChanged(nameof(HasNoWingetResults));
         CleanerTargets.CollectionChanged += (_, _) => OnPropertyChanged(nameof(HasNoCleanerTargets));
 
+        // Apply persisted token to services
+        if (!string.IsNullOrEmpty(_settings.GitHubToken))
+        {
+            _gitHubService.AccessToken  = _settings.GitHubToken;
+            _releaseService.AccessToken = _settings.GitHubToken;
+            _scanner.AccessToken        = _settings.GitHubToken;
+        }
+
         _ = LoadFeaturedAsync();
         _ = LoadInstalledAsync();
         _ = SearchAsync();
     }
 
-    // ── GitHub search ────────────────────────────────────────────────────────
+    // ── GitHub search ─────────────────────────────────────────────────────────
 
     private async Task SearchAsync()
     {
@@ -377,9 +531,9 @@ public class MainViewModel : INotifyPropertyChanged
         StatusText = "Fetching release for " + repo.FullName + "…";
         var release = await _releaseService.GetLatestReleaseAsync(repo.FullName);
         var url = release == null ? repo.ZipUrl : _releaseService.PickWindowsAsset(release) ?? repo.ZipUrl;
-        IsDownloading   = true;
+        IsDownloading    = true;
         DownloadProgress = 0;
-        DownloadLabel   = $"Downloading {repo.Name}…";
+        DownloadLabel    = $"Downloading {repo.Name}…";
         try
         {
             var file = await _zipDownloader.DownloadAsync(url, repo.Name, new Progress<double>(p =>
@@ -514,10 +668,10 @@ public class MainViewModel : INotifyPropertyChanged
     private async Task ShowDetailAsync(object? arg)
     {
         if (arg is not GitHubRepository repo) return;
-        SelectedApp            = repo;
-        ShowDetail             = true;
+        SelectedApp              = repo;
+        ShowDetail               = true;
         SelectedAppLatestVersion = "Checking…";
-        var release            = await _releaseService.GetLatestReleaseAsync(repo.FullName);
+        var release              = await _releaseService.GetLatestReleaseAsync(repo.FullName);
         SelectedAppLatestVersion = release?.TagName ?? "No release";
     }
 
@@ -614,12 +768,45 @@ public class MainViewModel : INotifyPropertyChanged
         finally { IsWingetLoading = false; }
     }
 
+    // ── Profile ───────────────────────────────────────────────────────────────
+
+    private async Task LoadProfileAsync()
+    {
+        IsProfileLoading = true;
+        StatusText = "Loading profile…";
+        try
+        {
+            var loaded = await _profileService.LoadAsync(_settings.GitHubToken);
+            Profile = loaded;
+            StatusText = loaded.HasGitHubProfile
+                ? $"Signed in as @{loaded.Login}"
+                : $"Logged in as {loaded.WindowsUser} (no GitHub token)";
+        }
+        catch (Exception ex) { StatusText = "Profile load failed: " + ex.Message; }
+        finally { IsProfileLoading = false; }
+    }
+
+    // ── System Info ───────────────────────────────────────────────────────────
+
+    private async Task LoadSysInfoAsync()
+    {
+        IsSysInfoLoading = true;
+        StatusText = "Loading system information…";
+        try
+        {
+            SysInfo    = await Task.Run(() => _sysInfoService.GetSnapshot());
+            StatusText = $"System info loaded — {SysInfo.OsDescription}";
+        }
+        catch (Exception ex) { StatusText = "System info failed: " + ex.Message; }
+        finally { IsSysInfoLoading = false; }
+    }
+
     // ── Theme ─────────────────────────────────────────────────────────────────
 
-    private void ToggleTheme()
+    private void ApplyTheme(bool dark)
     {
-        IsDarkMode = !IsDarkMode;
-        var uri  = new Uri(IsDarkMode ? "Themes/DarkTheme.xaml" : "Themes/StoreTheme.xaml", UriKind.Relative);
+        IsDarkMode = dark;
+        var uri  = new Uri(dark ? "Themes/DarkTheme.xaml" : "Themes/StoreTheme.xaml", UriKind.Relative);
         var dict = new ResourceDictionary { Source = uri };
         Application.Current.Resources.MergedDictionaries.Clear();
         Application.Current.Resources.MergedDictionaries.Add(dict);
