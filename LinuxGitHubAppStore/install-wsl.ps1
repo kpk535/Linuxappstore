@@ -90,7 +90,10 @@ $launcherCmd = @"
 cat > ~/launch-appstore.sh << 'LAUNCHER'
 #!/bin/bash
 export DISPLAY=\${DISPLAY:-:0}
-export LIBGL_ALWAYS_INDIRECT=1
+# WSL software rendering - suppresses libEGL/MESA driver warnings
+export LIBGL_ALWAYS_SOFTWARE=1
+export MESA_GL_VERSION_OVERRIDE=3.3
+export GALLIUM_DRIVER=softpipe
 
 # Check for DISPLAY
 if [ -z "\$DISPLAY" ]; then

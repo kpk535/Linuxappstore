@@ -49,26 +49,27 @@ GitHubRepository **github_search_repositories(GitHubService *service, const char
     ResponseBuffer response = {0};
     response.data = malloc(1);
 
+    char *escaped_query = curl_easy_escape(curl, query, 0);
     char url[512];
-    snprintf(url, sizeof(url), "https://api.github.com/search/repositories?q=%s&sort=stars&order=desc&per_page=10", query);
+    snprintf(url, sizeof(url), "https://api.github.com/search/repositories?q=%s&sort=stars&order=desc&per_page=10", escaped_query);
+    curl_free(escaped_query);
+
+    struct curl_slist *headers = NULL;
+    headers = curl_slist_append(headers, "Accept: application/vnd.github+json");
+    if (service && service->access_token) {
+        char auth[300];
+        snprintf(auth, sizeof(auth), "Authorization: token %s", service->access_token);
+        headers = curl_slist_append(headers, auth);
+    }
 
     curl_easy_setopt(curl, CURLOPT_URL, url);
     curl_easy_setopt(curl, CURLOPT_USERAGENT, "LinuxGitHubAppStore/1.0");
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_callback);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)&response);
-
-    if (service && service->access_token) {
-        char auth[256];
-        snprintf(auth, sizeof(auth), "token %s", service->access_token);
-        curl_easy_setopt(curl, CURLOPT_HTTPAUTH, CURLAUTH_BEARER);
-        curl_easy_setopt(curl, CURLOPT_XOAUTH2_BEARER, service->access_token);
-
-        struct curl_slist *headers = NULL;
-        headers = curl_slist_append(headers, auth);
-        curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
-    }
+    curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
 
     CURLcode res = curl_easy_perform(curl);
+    curl_slist_free_all(headers);
     if (res != CURLE_OK) {
         fprintf(stderr, "curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
         free(response.data);
@@ -140,9 +141,10 @@ char *github_get_user_profile(GitHubService *service) {
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_callback);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)&response);
 
-    char auth[256];
-    snprintf(auth, sizeof(auth), "token %s", service->access_token);
+    char auth[300];
+    snprintf(auth, sizeof(auth), "Authorization: token %s", service->access_token);
     struct curl_slist *headers = NULL;
+    headers = curl_slist_append(headers, "Accept: application/vnd.github+json");
     headers = curl_slist_append(headers, auth);
     curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
 
@@ -177,9 +179,10 @@ char *github_validate_token(GitHubService *service) {
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)&response);
     curl_easy_setopt(curl, CURLOPT_TIMEOUT, 5L);
 
-    char auth[256];
-    snprintf(auth, sizeof(auth), "token %s", service->access_token);
+    char auth[300];
+    snprintf(auth, sizeof(auth), "Authorization: token %s", service->access_token);
     struct curl_slist *headers = NULL;
+    headers = curl_slist_append(headers, "Accept: application/vnd.github+json");
     headers = curl_slist_append(headers, auth);
     curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
 
