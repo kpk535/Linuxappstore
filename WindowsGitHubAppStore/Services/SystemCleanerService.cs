@@ -1,3 +1,5 @@
+using System.IO;
+
 namespace WindowsGitHubAppStore.Services;
 
 public class SystemCleanerService
