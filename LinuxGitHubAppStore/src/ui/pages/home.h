@@ -1,10 +1,14 @@
-#ifndef PAGE_HOME_H
-#define PAGE_HOME_H
+#ifndef HOME_PAGE_H
+#define HOME_PAGE_H
 
 #include <gtk/gtk.h>
-#include "../window.h"
 
-GtkWidget* page_home_create(AppWindow *win);
-void page_home_refresh(GtkWidget *page, AppWindow *win);
+typedef struct {
+    GtkBox *box;
+    GtkSearchEntry *search_entry;
+    GtkListBox *results_list;
+} PageHome;
+
+PageHome *page_home_new(void);
 
 #endif

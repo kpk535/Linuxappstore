@@ -8,8 +8,10 @@ typedef struct {
     char *download_folder;
 } AppSettings;
 
-AppSettings* settings_load(void);
-void settings_save(AppSettings *settings);
+AppSettings *settings_new(void);
 void settings_free(AppSettings *settings);
+
+AppSettings *settings_load(void);
+void settings_save(AppSettings *settings);
 
 #endif

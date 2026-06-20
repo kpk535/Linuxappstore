@@ -2,29 +2,45 @@
 #include <stdlib.h>
 #include <string.h>
 
+GitHubRepository *repository_new(void) {
+    GitHubRepository *repo = malloc(sizeof(GitHubRepository));
+    if (repo) {
+        repo->id = NULL;
+        repo->name = NULL;
+        repo->description = NULL;
+        repo->url = NULL;
+        repo->language = NULL;
+        repo->stars = 0;
+    }
+    return repo;
+}
+
 void repository_free(GitHubRepository *repo) {
-    if (!repo) return;
-    free(repo->id);
-    free(repo->name);
-    free(repo->full_name);
-    free(repo->description);
-    free(repo->html_url);
-    free(repo->clone_url);
-    free(repo->zip_url);
-    free(repo->language);
-    free(repo->owner_login);
-    free(repo->owner_avatar_url);
-    free(repo);
+    if (repo) {
+        free(repo->id);
+        free(repo->name);
+        free(repo->description);
+        free(repo->url);
+        free(repo->language);
+        free(repo);
+    }
+}
+
+InstalledApp *installed_app_new(void) {
+    InstalledApp *app = malloc(sizeof(InstalledApp));
+    if (app) {
+        app->name = NULL;
+        app->path = NULL;
+        app->version = NULL;
+    }
+    return app;
 }
 
 void installed_app_free(InstalledApp *app) {
-    if (!app) return;
-    free(app->name);
-    free(app->full_name);
-    free(app->version);
-    free(app->description);
-    free(app->source_url);
-    free(app->avatar_url);
-    free(app->install_path);
-    free(app);
+    if (app) {
+        free(app->name);
+        free(app->path);
+        free(app->version);
+        free(app);
+    }
 }

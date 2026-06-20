@@ -1,62 +1,63 @@
 #include "profile.h"
+#include "../../services/github.h"
+#include "../../services/settings.h"
 #include <stdlib.h>
+#include <json-c/json.h>
+#include <string.h>
 
-GtkWidget* page_profile_create(AppWindow *win) {
-    GtkBox *page = GTK_BOX(gtk_box_new(GTK_ORIENTATION_VERTICAL, 0));
+PageProfile *page_profile_new(void) {
+    PageProfile *page = malloc(sizeof(PageProfile));
 
-    GtkBox *header = GTK_BOX(gtk_box_new(GTK_ORIENTATION_VERTICAL, 8));
-    gtk_widget_set_margin_top(GTK_WIDGET(header), 20);
-    gtk_widget_set_margin_bottom(GTK_WIDGET(header), 20);
-    gtk_widget_set_margin_start(GTK_WIDGET(header), 20);
-    gtk_widget_set_margin_end(GTK_WIDGET(header), 20);
+    page->box = GTK_BOX(gtk_box_new(GTK_ORIENTATION_VERTICAL, 10));
+    gtk_widget_set_margin_start(GTK_WIDGET(page->box), 20);
+    gtk_widget_set_margin_end(GTK_WIDGET(page->box), 20);
+    gtk_widget_set_margin_top(GTK_WIDGET(page->box), 20);
 
-    GtkLabel *title = GTK_LABEL(gtk_label_new(NULL));
-    gtk_label_set_markup(title, "<span size='20000'><b>Profile</b></span>");
-    gtk_widget_set_halign(GTK_WIDGET(title), GTK_ALIGN_START);
-    gtk_box_append(header, GTK_WIDGET(title));
+    GtkLabel *title = GTK_LABEL(gtk_label_new("GitHub Profile"));
+    gtk_widget_add_css_class(GTK_WIDGET(title), "title");
+    gtk_box_append(page->box, GTK_WIDGET(title));
 
-    GtkLabel *subtitle = GTK_LABEL(gtk_label_new("Your GitHub account and system information"));
-    gtk_widget_set_halign(GTK_WIDGET(subtitle), GTK_ALIGN_START);
-    gtk_box_append(header, GTK_WIDGET(subtitle));
+    page->username_label = GTK_LABEL(gtk_label_new("Username: Not signed in"));
+    gtk_box_append(page->box, GTK_WIDGET(page->username_label));
 
-    gtk_box_append(page, GTK_WIDGET(header));
+    page->name_label = GTK_LABEL(gtk_label_new("Name: -"));
+    gtk_box_append(page->box, GTK_WIDGET(page->name_label));
 
-    GtkScrolledWindow *scroll = GTK_SCROLLED_WINDOW(gtk_scrolled_window_new());
-    gtk_widget_set_hexpand(GTK_WIDGET(scroll), TRUE);
-    gtk_widget_set_vexpand(GTK_WIDGET(scroll), TRUE);
+    GtkButton *go_to_settings = GTK_BUTTON(gtk_button_new_with_label("Go to Settings"));
+    gtk_box_append(page->box, GTK_WIDGET(go_to_settings));
 
-    GtkBox *content = GTK_BOX(gtk_box_new(GTK_ORIENTATION_VERTICAL, 0));
-    gtk_scrolled_window_set_child(scroll, GTK_WIDGET(content));
+    AppSettings *settings = settings_load();
+    if (settings->github_token) {
+        GitHubService *service = github_service_new(settings->github_token);
+        char *profile_json = github_get_user_profile(service);
 
-    GtkBox *status_box = GTK_BOX(gtk_box_new(GTK_ORIENTATION_VERTICAL, 8));
-    gtk_widget_set_margin_top(GTK_WIDGET(status_box), 16);
-    gtk_widget_set_margin_bottom(GTK_WIDGET(status_box), 16);
-    gtk_widget_set_margin_start(GTK_WIDGET(status_box), 16);
-    gtk_widget_set_margin_end(GTK_WIDGET(status_box), 16);
+        json_object *parsed = json_tokener_parse(profile_json);
+        if (parsed) {
+            json_object *login_obj, *name_obj;
+            if (json_object_object_get_ex(parsed, "login", &login_obj)) {
+                char username[128];
+                snprintf(username, sizeof(username), "Username: %s", json_object_get_string(login_obj));
+                gtk_label_set_text(page->username_label, username);
+            }
+            if (json_object_object_get_ex(parsed, "name", &name_obj)) {
+                const char *name = json_object_get_string(name_obj);
+                if (name && strlen(name) > 0) {
+                    char full_name[128];
+                    snprintf(full_name, sizeof(full_name), "Name: %s", name);
+                    gtk_label_set_text(page->name_label, full_name);
+                }
+            }
+            json_object_put(parsed);
+        }
 
-    if (!win->current_token || !*win->current_token) {
-        GtkLabel *no_token = GTK_LABEL(gtk_label_new(NULL));
-        gtk_label_set_markup(no_token, "<span foreground='#f97316'>⚠ No GitHub account connected</span>");
-        gtk_widget_set_halign(GTK_WIDGET(no_token), GTK_ALIGN_START);
-        gtk_box_append(status_box, GTK_WIDGET(no_token));
-
-        GtkLabel *help = GTK_LABEL(gtk_label_new("Add your Personal Access Token in Settings to connect your GitHub account"));
-        gtk_widget_set_halign(GTK_WIDGET(help), GTK_ALIGN_START);
-        gtk_label_set_wrap(help, TRUE);
-        gtk_box_append(status_box, GTK_WIDGET(help));
-    } else {
-        GtkLabel *connected = GTK_LABEL(gtk_label_new(NULL));
-        gtk_label_set_markup(connected, "<span foreground='#16a34a'>✓ GitHub account connected</span>");
-        gtk_widget_set_halign(GTK_WIDGET(connected), GTK_ALIGN_START);
-        gtk_box_append(status_box, GTK_WIDGET(connected));
+        free(profile_json);
+        github_service_free(service);
     }
+    settings_free(settings);
 
-    gtk_box_append(content, GTK_WIDGET(status_box));
+    GtkBox *spacer = GTK_BOX(gtk_box_new(GTK_ORIENTATION_VERTICAL, 0));
+    gtk_widget_set_vexpand(GTK_WIDGET(spacer), TRUE);
+    gtk_box_append(page->box, GTK_WIDGET(spacer));
 
-    gtk_box_append(page, GTK_WIDGET(scroll));
-
-    return GTK_WIDGET(page);
-}
-
-void page_profile_refresh(GtkWidget *page, AppWindow *win) {
+    return page;
 }
