@@ -16,6 +16,8 @@ typedef struct {
     GtkLabel       *rate_limit_label;
 
     /* detail sub-page */
+    GtkBox         *detail_banner;
+    GtkLabel       *detail_init;
     GtkLabel       *detail_name;
     GtkLabel       *detail_meta;
     GtkLabel       *detail_desc;

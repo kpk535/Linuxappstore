@@ -252,7 +252,80 @@ static const char *APP_CSS =
     "}"
 
     /* ── section separator ──────────────────── */
-    ".section-sep { margin: 8px 0; opacity: 0.10; }";
+    ".section-sep { margin: 8px 0; opacity: 0.10; }"
+
+    /* ── hero banner ─────────────────────────── */
+    ".hero-banner {"
+    "  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);"
+    "  border-radius: 16px; padding: 22px 24px 20px 24px; margin-bottom: 4px;"
+    "}"
+    ".hero-title { font-size: 22px; font-weight: 800; color: white; letter-spacing: -0.01em; }"
+    ".hero-sub { font-size: 13px; color: rgba(255,255,255,0.72); }"
+
+    /* ── sidebar section labels ──────────────── */
+    ".sidebar-section {"
+    "  font-size: 9.5px; font-weight: 700; letter-spacing: 0.12em;"
+    "  color: rgba(255,255,255,0.25); padding: 14px 18px 4px 18px;"
+    "}"
+
+    /* ── filter tab bar ──────────────────────── */
+    ".filter-bar {"
+    "  background-color: white; border-radius: 12px;"
+    "  border: 1px solid rgba(0,0,0,0.07); padding: 4px;"
+    "}"
+    ".filter-tab {"
+    "  border-radius: 8px; border: none; background: transparent;"
+    "  color: rgba(0,0,0,0.55); font-size: 12px; font-weight: 500;"
+    "  padding: 6px 14px; min-height: 0;"
+    "}"
+    ".filter-tab:hover { background-color: rgba(99,102,241,0.08); color: #4338ca; }"
+    ".filter-tab-active { background-color: #6366f1; color: white; font-weight: 600; }"
+    ".filter-tab-active:hover { background-color: #4f46e5; color: white; }"
+
+    /* ── avatar / initial circles ────────────── */
+    ".app-avatar {"
+    "  border-radius: 100px; min-width: 44px; min-height: 44px;"
+    "  font-size: 18px; font-weight: 700; color: white;"
+    "}"
+    ".avatar-blue   { background-color: #3b82f6; }"
+    ".avatar-green  { background-color: #10b981; }"
+    ".avatar-purple { background-color: #8b5cf6; }"
+    ".avatar-red    { background-color: #ef4444; }"
+    ".avatar-orange { background-color: #f59e0b; }"
+    ".avatar-pink   { background-color: #ec4899; }"
+    ".avatar-teal   { background-color: #14b8a6; }"
+
+    /* ── detail page banner ──────────────────── */
+    ".detail-banner { border-radius: 16px; padding: 18px 20px; margin-bottom: 4px; }"
+    ".detail-banner-init {"
+    "  font-size: 30px; font-weight: 800; color: white; opacity: 0.90;"
+    "  min-width: 56px; min-height: 56px; border-radius: 100px;"
+    "  background-color: rgba(255,255,255,0.20);"
+    "}"
+    ".detail-repo-name { font-size: 17px; font-weight: 700; color: white; }"
+    ".detail-repo-meta { font-size: 12px; color: rgba(255,255,255,0.72); }"
+
+    /* ── empty state ─────────────────────────── */
+    ".empty-icon { font-size: 52px; opacity: 0.28; }"
+    ".empty-text { font-size: 17px; font-weight: 600; opacity: 0.38; }"
+    ".empty-hint { font-size: 13px; opacity: 0.30; }"
+
+    /* ── library summary card ────────────────── */
+    ".summary-card {"
+    "  background: linear-gradient(135deg, rgba(99,102,241,0.08), rgba(139,92,246,0.08));"
+    "  border-radius: 12px; border: 1px solid rgba(99,102,241,0.15); padding: 14px 18px;"
+    "}"
+    ".summary-count { font-size: 26px; font-weight: 800; color: #6366f1; }"
+    ".summary-label { font-size: 11px; opacity: 0.48; letter-spacing: 0.03em; }"
+
+    /* ── shadows ─────────────────────────────── */
+    "listbox { box-shadow: 0 1px 3px rgba(0,0,0,0.05), 0 4px 16px rgba(0,0,0,0.04); }"
+    ".stat-box { box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.04); }"
+    "listbox > row { transition: background-color 100ms ease; }"
+
+    /* ── uptime / sysinfo extras ─────────────── */
+    ".uptime-val { font-size: 16px; font-weight: 600; }"
+    ".info-mono  { font-family: monospace; font-size: 11px; opacity: 0.60; }";
 
 AppWindow *app_window_new(GtkApplication *app) {
     GtkCssProvider *css = gtk_css_provider_new();

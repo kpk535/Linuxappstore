@@ -359,14 +359,25 @@ static void on_result_activated(GtkListBox *list, GtkListBoxRow *row, gpointer d
     if (!d) return;
     PageHome *page = d->page;
 
-    char name_markup[256];
-    snprintf(name_markup, sizeof(name_markup),
-             "<span size='large'><b>%s</b></span>", d->full_name ?: "");
-    gtk_label_set_markup(page->detail_name, name_markup);
+    /* Update banner color based on repo initial */
+    static const char *bcolors[] = {
+        "avatar-blue","avatar-green","avatar-purple",
+        "avatar-red","avatar-orange","avatar-pink","avatar-teal"
+    };
+    const char *dn = d->app_name ?: d->full_name ?: "?";
+    for (int ci = 0; ci < 7; ci++)
+        gtk_widget_remove_css_class(GTK_WIDGET(page->detail_banner), bcolors[ci]);
+    gtk_widget_add_css_class(GTK_WIDGET(page->detail_banner),
+                             bcolors[g_ascii_toupper((guchar)dn[0]) % 7]);
+
+    char init_ch[4]; init_ch[0] = g_ascii_toupper((guchar)dn[0]); init_ch[1] = '\0';
+    gtk_label_set_text(page->detail_init, init_ch);
+    gtk_label_set_text(page->detail_name, d->full_name ?: "");
 
     char meta[256];
-    snprintf(meta, sizeof(meta), "⭐ %d stars   🍴 %d forks   %s",
-             d->stars, d->forks, d->language ?: "");
+    snprintf(meta, sizeof(meta), "⭐ %d stars   🍴 %d forks%s%s",
+             d->stars, d->forks,
+             d->language ? "   " : "", d->language ?: "");
     gtk_label_set_text(page->detail_meta, meta);
     gtk_label_set_text(page->detail_desc, d->description ?: "No description.");
 
@@ -442,11 +453,29 @@ static void do_search(PageHome *page, const char *query) {
     for (int i = 0; i < count; i++) {
         GitHubRepository *r = repos[i];
 
-        GtkBox *item = GTK_BOX(gtk_box_new(GTK_ORIENTATION_VERTICAL, 4));
+        GtkBox *item = GTK_BOX(gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 12));
         gtk_widget_set_margin_start(GTK_WIDGET(item), 14);
         gtk_widget_set_margin_end(GTK_WIDGET(item), 14);
         gtk_widget_set_margin_top(GTK_WIDGET(item), 10);
         gtk_widget_set_margin_bottom(GTK_WIDGET(item), 10);
+
+        /* Avatar circle with repo initial */
+        static const char *acolors[] = {
+            "avatar-blue","avatar-green","avatar-purple",
+            "avatar-red","avatar-orange","avatar-pink","avatar-teal"
+        };
+        const char *rn = r->name ?: r->full_name ?: "?";
+        char initial[4]; initial[0] = g_ascii_toupper((guchar)rn[0]); initial[1] = '\0';
+        GtkLabel *avatar = GTK_LABEL(gtk_label_new(initial));
+        gtk_widget_add_css_class(GTK_WIDGET(avatar), "app-avatar");
+        gtk_widget_add_css_class(GTK_WIDGET(avatar), acolors[g_ascii_toupper((guchar)initial[0]) % 7]);
+        gtk_widget_set_valign(GTK_WIDGET(avatar), GTK_ALIGN_CENTER);
+        gtk_widget_set_halign(GTK_WIDGET(avatar), GTK_ALIGN_CENTER);
+        gtk_box_append(item, GTK_WIDGET(avatar));
+
+        /* Info column */
+        GtkBox *info_col = GTK_BOX(gtk_box_new(GTK_ORIENTATION_VERTICAL, 4));
+        gtk_widget_set_hexpand(GTK_WIDGET(info_col), TRUE);
 
         GtkBox *top_row = GTK_BOX(gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 6));
 
@@ -464,7 +493,7 @@ static void do_search(PageHome *page, const char *query) {
         gtk_widget_add_css_class(GTK_WIDGET(stars_lbl), "muted");
         gtk_box_append(top_row, GTK_WIDGET(stars_lbl));
 
-        gtk_box_append(item, GTK_WIDGET(top_row));
+        gtk_box_append(info_col, GTK_WIDGET(top_row));
 
         if (r->description && strlen(r->description) > 0) {
             GtkLabel *desc = GTK_LABEL(gtk_label_new(r->description));
@@ -473,10 +502,10 @@ static void do_search(PageHome *page, const char *query) {
             gtk_label_set_lines(desc, 2);
             gtk_label_set_ellipsize(desc, PANGO_ELLIPSIZE_END);
             gtk_widget_add_css_class(GTK_WIDGET(desc), "muted");
-            gtk_box_append(item, GTK_WIDGET(desc));
+            gtk_box_append(info_col, GTK_WIDGET(desc));
         }
 
-        /* Bottom row: language + forks */
+        /* Bottom row: language badge + forks */
         GtkBox *bottom_row = GTK_BOX(gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 8));
         gtk_widget_set_margin_top(GTK_WIDGET(bottom_row), 4);
 
@@ -497,7 +526,8 @@ static void do_search(PageHome *page, const char *query) {
             gtk_box_append(bottom_row, GTK_WIDGET(forks_lbl));
         }
 
-        gtk_box_append(item, GTK_WIDGET(bottom_row));
+        gtk_box_append(info_col, GTK_WIDGET(bottom_row));
+        gtk_box_append(item, GTK_WIDGET(info_col));
 
         GtkListBoxRow *row = GTK_LIST_BOX_ROW(gtk_list_box_row_new());
         gtk_list_box_row_set_child(row, GTK_WIDGET(item));
@@ -578,23 +608,29 @@ PageHome *page_home_new(void) {
     gtk_widget_set_margin_end(GTK_WIDGET(search_box), 24);
     gtk_widget_set_margin_top(GTK_WIDGET(search_box), 24);
 
-    /* Title row */
-    GtkBox *title_row = GTK_BOX(gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 8));
-    GtkLabel *title = GTK_LABEL(gtk_label_new("Search Apps"));
-    gtk_widget_add_css_class(GTK_WIDGET(title), "page-title");
-    gtk_label_set_xalign(title, 0.0f);
-    gtk_widget_set_hexpand(GTK_WIDGET(title), TRUE);
-    gtk_box_append(title_row, GTK_WIDGET(title));
+    /* Hero banner */
+    GtkBox *hero = GTK_BOX(gtk_box_new(GTK_ORIENTATION_VERTICAL, 10));
+    gtk_widget_add_css_class(GTK_WIDGET(hero), "hero-banner");
+
+    GtkBox *hero_row = GTK_BOX(gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 8));
+    GtkLabel *hero_title = GTK_LABEL(gtk_label_new("Discover Linux Apps"));
+    gtk_widget_add_css_class(GTK_WIDGET(hero_title), "hero-title");
+    gtk_label_set_xalign(hero_title, 0.0f);
+    gtk_widget_set_hexpand(GTK_WIDGET(hero_title), TRUE);
+    gtk_box_append(hero_row, GTK_WIDGET(hero_title));
 
     page->search_spinner = GTK_SPINNER(gtk_spinner_new());
     gtk_widget_set_visible(GTK_WIDGET(page->search_spinner), FALSE);
-    gtk_box_append(title_row, GTK_WIDGET(page->search_spinner));
-    gtk_box_append(search_box, GTK_WIDGET(title_row));
+    gtk_box_append(hero_row, GTK_WIDGET(page->search_spinner));
+    gtk_box_append(hero, GTK_WIDGET(hero_row));
 
-    GtkLabel *sub = GTK_LABEL(gtk_label_new("Discover GitHub repositories and install apps"));
-    gtk_widget_add_css_class(GTK_WIDGET(sub), "page-subtitle");
-    gtk_label_set_xalign(sub, 0.0f);
-    gtk_box_append(search_box, GTK_WIDGET(sub));
+    GtkLabel *hero_sub = GTK_LABEL(gtk_label_new(
+        "Search GitHub for AppImages, .deb, .rpm packages and more — install in one click"));
+    gtk_widget_add_css_class(GTK_WIDGET(hero_sub), "hero-sub");
+    gtk_label_set_xalign(hero_sub, 0.0f);
+    gtk_label_set_wrap(hero_sub, TRUE);
+    gtk_box_append(hero, GTK_WIDGET(hero_sub));
+    gtk_box_append(search_box, GTK_WIDGET(hero));
 
     page->search_entry = GTK_SEARCH_ENTRY(gtk_search_entry_new());
     gtk_search_entry_set_placeholder_text(page->search_entry,
@@ -662,15 +698,34 @@ PageHome *page_home_new(void) {
     gtk_box_append(detail_box, GTK_WIDGET(back_btn));
     g_signal_connect(back_btn, "clicked", G_CALLBACK(on_back_clicked), page);
 
+    /* Colored gradient banner for the selected repo */
+    page->detail_banner = GTK_BOX(gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 16));
+    gtk_widget_add_css_class(GTK_WIDGET(page->detail_banner), "detail-banner");
+    gtk_widget_add_css_class(GTK_WIDGET(page->detail_banner), "avatar-blue");
+
+    page->detail_init = GTK_LABEL(gtk_label_new("?"));
+    gtk_widget_add_css_class(GTK_WIDGET(page->detail_init), "detail-banner-init");
+    gtk_widget_set_valign(GTK_WIDGET(page->detail_init), GTK_ALIGN_CENTER);
+    gtk_widget_set_halign(GTK_WIDGET(page->detail_init), GTK_ALIGN_CENTER);
+    gtk_box_append(page->detail_banner, GTK_WIDGET(page->detail_init));
+
+    GtkBox *banner_info = GTK_BOX(gtk_box_new(GTK_ORIENTATION_VERTICAL, 6));
+    gtk_widget_set_hexpand(GTK_WIDGET(banner_info), TRUE);
+    gtk_widget_set_valign(GTK_WIDGET(banner_info), GTK_ALIGN_CENTER);
+
     page->detail_name = GTK_LABEL(gtk_label_new(""));
     gtk_label_set_xalign(page->detail_name, 0.0f);
     gtk_label_set_wrap(page->detail_name, TRUE);
-    gtk_box_append(detail_box, GTK_WIDGET(page->detail_name));
+    gtk_widget_add_css_class(GTK_WIDGET(page->detail_name), "detail-repo-name");
+    gtk_box_append(banner_info, GTK_WIDGET(page->detail_name));
 
     page->detail_meta = GTK_LABEL(gtk_label_new(""));
     gtk_label_set_xalign(page->detail_meta, 0.0f);
-    gtk_widget_add_css_class(GTK_WIDGET(page->detail_meta), "muted");
-    gtk_box_append(detail_box, GTK_WIDGET(page->detail_meta));
+    gtk_widget_add_css_class(GTK_WIDGET(page->detail_meta), "detail-repo-meta");
+    gtk_box_append(banner_info, GTK_WIDGET(page->detail_meta));
+
+    gtk_box_append(page->detail_banner, GTK_WIDGET(banner_info));
+    gtk_box_append(detail_box, GTK_WIDGET(page->detail_banner));
 
     page->detail_desc = GTK_LABEL(gtk_label_new(""));
     gtk_label_set_xalign(page->detail_desc, 0.0f);
