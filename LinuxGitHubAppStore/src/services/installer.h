@@ -29,6 +29,7 @@ typedef struct {
     char *version;
     char *repo_url;
     char *token;            /* optional GitHub token */
+    long  expected_size;   /* bytes from asset metadata, 0 = unknown */
     InstallProgress *progress;
 } InstallTask;
 

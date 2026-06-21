@@ -40,7 +40,7 @@ static gboolean poll_progress(gpointer data) {
 
     if (!p->done) return G_SOURCE_CONTINUE;
 
-    gtk_progress_bar_set_fraction(pd->bar, 1.0);
+    gtk_progress_bar_set_fraction(pd->bar, p->success ? 1.0 : 0.0);
     gtk_widget_set_sensitive(GTK_WIDGET(pd->close_btn), TRUE);
 
     if (p->success && p->install_path) {
@@ -56,8 +56,15 @@ static gboolean poll_progress(gpointer data) {
         package_db_add(app);
 
         gtk_widget_add_css_class(GTK_WIDGET(pd->status_label), "success");
+        gtk_label_set_text(pd->status_label, "Installed successfully ✓");
     } else {
         gtk_widget_add_css_class(GTK_WIDGET(pd->status_label), "error");
+        if (p->error) {
+            /* Show full error message — may be long, so wrap it */
+            gtk_label_set_text(pd->status_label, p->error);
+            gtk_label_set_wrap(pd->status_label, TRUE);
+            gtk_label_set_max_width_chars(pd->status_label, 50);
+        }
     }
 
     g_source_remove(pd->timer_id);
@@ -76,18 +83,19 @@ static void on_close_dialog(GtkButton *btn, gpointer data) {
 static void start_install(GtkWindow *parent, const char *asset_name,
                           const char *asset_url, const char *app_name,
                           const char *full_name, const char *version,
-                          const char *repo_url) {
+                          const char *repo_url, long expected_size) {
     AppSettings *settings = settings_load();
 
     InstallTask *task = install_task_new();
-    task->url       = strdup(asset_url);
-    task->filename  = strdup(asset_name);
-    task->app_name  = strdup(app_name);
-    task->full_name = strdup(full_name ?: app_name);
-    task->version   = strdup(version ?: "unknown");
-    task->repo_url  = strdup(repo_url ?: "");
-    task->token     = settings->github_token ? strdup(settings->github_token) : NULL;
-    task->progress  = install_progress_new();
+    task->url           = strdup(asset_url);
+    task->filename      = strdup(asset_name);
+    task->app_name      = strdup(app_name);
+    task->full_name     = strdup(full_name ?: app_name);
+    task->version       = strdup(version ?: "unknown");
+    task->repo_url      = strdup(repo_url ?: "");
+    task->token         = settings->github_token ? strdup(settings->github_token) : NULL;
+    task->expected_size = expected_size;
+    task->progress      = install_progress_new();
     settings_free(settings);
 
     GtkWindow *dlg = GTK_WINDOW(gtk_window_new());
@@ -152,6 +160,7 @@ typedef struct {
     char *full_name;
     char *version;
     char *repo_url;
+    long  expected_size;
     GtkWindow *parent_window;
 } AssetData;
 
@@ -167,7 +176,8 @@ static void on_install_asset(GtkButton *btn, gpointer data) {
     (void)btn;
     AssetData *d = (AssetData *)data;
     start_install(d->parent_window, d->asset_name, d->asset_url,
-                  d->app_name, d->full_name, d->version, d->repo_url);
+                  d->app_name, d->full_name, d->version, d->repo_url,
+                  d->expected_size);
 }
 
 /* ── releases loader ──────────────────────────────────────── */
@@ -296,6 +306,7 @@ static void load_releases(PageHome *page) {
             ad->full_name     = strdup(page->current_full_name ?: "");
             ad->version       = strdup(rel->tag_name ?: "unknown");
             ad->repo_url      = strdup(page->current_full_name ?: "");
+            ad->expected_size = asset->size;
             ad->parent_window = parent_win;
 
             g_signal_connect_data(install_btn, "clicked",
@@ -386,20 +397,46 @@ static void do_search(PageHome *page, const char *query) {
 
     int count = 0;
     GitHubRepository **repos = github_search_repositories(svc, query, &count);
-    github_service_free(svc);
 
     gtk_spinner_stop(page->search_spinner);
     gtk_widget_set_visible(GTK_WIDGET(page->search_spinner), FALSE);
 
+    /* Update rate limit label */
+    char *rl_msg = github_rate_limit_message(svc);
+    if (rl_msg) {
+        gtk_label_set_text(page->rate_limit_label, rl_msg);
+        gtk_widget_set_visible(GTK_WIDGET(page->rate_limit_label), TRUE);
+        free(rl_msg);
+    }
+
     if (!repos || count == 0) {
-        gtk_label_set_markup(page->results_hint,
-            "<span color='#dc2626'>No results found.</span>  Try a different search term.");
+        char err_markup[512];
+        if (svc->last_error) {
+            snprintf(err_markup, sizeof(err_markup),
+                     "<span color='#dc2626'>%s</span>", svc->last_error);
+        } else if (svc->last_http_code == 0) {
+            snprintf(err_markup, sizeof(err_markup),
+                     "<span color='#dc2626'>Network error — check your internet connection.</span>");
+        } else if (count == 0) {
+            snprintf(err_markup, sizeof(err_markup),
+                     "No results found for <i>%s</i>. Try a different search term.", query);
+        } else {
+            snprintf(err_markup, sizeof(err_markup),
+                     "<span color='#dc2626'>Error %ld — %s</span>",
+                     svc->last_http_code,
+                     github_strerror(svc->last_http_code) ?: "Unknown error");
+        }
+        gtk_label_set_markup(page->results_hint, err_markup);
+        github_service_free(svc);
         free(repos);
         return;
     }
 
-    char hint_text[64];
-    snprintf(hint_text, sizeof(hint_text), "Found %d repositories — click to view releases", count);
+    github_service_free(svc);
+
+    char hint_text[80];
+    snprintf(hint_text, sizeof(hint_text),
+             "Found %d repositories — click a result to view releases.", count);
     gtk_label_set_text(page->results_hint, hint_text);
 
     for (int i = 0; i < count; i++) {
@@ -564,6 +601,13 @@ PageHome *page_home_new(void) {
                                           "Search GitHub repositories…  (press Enter)");
     gtk_widget_set_size_request(GTK_WIDGET(page->search_entry), -1, 42);
     gtk_box_append(search_box, GTK_WIDGET(page->search_entry));
+
+    /* Rate limit indicator */
+    page->rate_limit_label = GTK_LABEL(gtk_label_new(""));
+    gtk_widget_add_css_class(GTK_WIDGET(page->rate_limit_label), "muted");
+    gtk_label_set_xalign(page->rate_limit_label, 1.0f);
+    gtk_widget_set_visible(GTK_WIDGET(page->rate_limit_label), FALSE);
+    gtk_box_append(search_box, GTK_WIDGET(page->rate_limit_label));
 
     /* Featured categories */
     page->featured_box = GTK_BOX(gtk_box_new(GTK_ORIENTATION_VERTICAL, 8));

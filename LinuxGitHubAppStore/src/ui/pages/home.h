@@ -13,6 +13,7 @@ typedef struct {
     GtkBox         *featured_box;
     GtkListBox     *results_list;
     GtkLabel       *results_hint;
+    GtkLabel       *rate_limit_label;
 
     /* detail sub-page */
     GtkLabel       *detail_name;
