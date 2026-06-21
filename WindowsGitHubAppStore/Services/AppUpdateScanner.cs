@@ -4,13 +4,22 @@ namespace WindowsGitHubAppStore.Services;
 
 public class AppUpdateScanner
 {
-    private readonly GitHubReleaseService releases = new();
+    private readonly GitHubReleaseService _releases = new();
 
-    public async Task<string> ScanOneAsync(InstalledApp app)
+    public string? AccessToken
     {
-        var latest = await releases.GetLatestReleaseAsync(app.FullName);
-        if (latest == null) return app.FullName + ": no release data";
-        if (latest.TagName != app.Version) return app.FullName + ": update " + latest.TagName;
-        return app.FullName + ": current";
+        get => _releases.AccessToken;
+        set => _releases.AccessToken = value;
+    }
+
+    public async Task ScanOneAsync(InstalledApp app)
+    {
+        var latest = await _releases.GetLatestReleaseAsync(app.FullName);
+        app.LastCheckedAt = DateTime.Now;
+        if (latest == null) return;
+        app.LatestVersion = latest.TagName;
+        app.HasUpdate = !string.IsNullOrEmpty(app.Version)
+                        && app.Version != "zip"
+                        && latest.TagName != app.Version;
     }
 }

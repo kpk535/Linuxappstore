@@ -2,38 +2,38 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
     <!-- ════════════════════════════════════════════════════
-         LIGHT PALETTE
+         DARK PALETTE
     ════════════════════════════════════════════════════ -->
-    <SolidColorBrush x:Key="StoreBackground"    Color="#F2F4F8"/>
-    <SolidColorBrush x:Key="StoreSurface"       Color="#FFFFFF"/>
-    <SolidColorBrush x:Key="StoreSurfaceAlt"    Color="#F8F9FB"/>
-    <SolidColorBrush x:Key="StoreBorder"        Color="#E3E6EF"/>
-    <SolidColorBrush x:Key="StoreText"          Color="#15172A"/>
-    <SolidColorBrush x:Key="StoreSubText"       Color="#636B80"/>
-    <SolidColorBrush x:Key="StoreAccent"        Color="#0067C0"/>
-    <SolidColorBrush x:Key="StoreAccentHover"   Color="#005BAD"/>
-    <SolidColorBrush x:Key="StoreAccentLight"   Color="#E0EEFF"/>
-    <SolidColorBrush x:Key="StoreSoftAccent"    Color="#EBF3FF"/>
-    <SolidColorBrush x:Key="StoreDanger"        Color="#D92D20"/>
-    <SolidColorBrush x:Key="StoreDangerHover"   Color="#B91C14"/>
-    <SolidColorBrush x:Key="StoreDangerLight"   Color="#FEE4E2"/>
-    <SolidColorBrush x:Key="StoreWarning"       Color="#D97706"/>
-    <SolidColorBrush x:Key="StoreWarningLight"  Color="#FEF3C7"/>
-    <SolidColorBrush x:Key="StoreSuccess"       Color="#059669"/>
-    <SolidColorBrush x:Key="StoreSuccessLight"  Color="#D1FAE5"/>
-    <SolidColorBrush x:Key="StoreSidebarBg"     Color="#ECEEF4"/>
-    <SolidColorBrush x:Key="StoreCardBorderHover" Color="#0067C0"/>
-    <SolidColorBrush x:Key="StoreToggleOff"     Color="#D0D5E0"/>
-    <SolidColorBrush x:Key="StoreToggleThumb"   Color="#FFFFFF"/>
+    <SolidColorBrush x:Key="StoreBackground"      Color="#111214"/>
+    <SolidColorBrush x:Key="StoreSurface"         Color="#1C1D22"/>
+    <SolidColorBrush x:Key="StoreSurfaceAlt"      Color="#242529"/>
+    <SolidColorBrush x:Key="StoreBorder"          Color="#2E3038"/>
+    <SolidColorBrush x:Key="StoreText"            Color="#F0F1F5"/>
+    <SolidColorBrush x:Key="StoreSubText"         Color="#9199A8"/>
+    <SolidColorBrush x:Key="StoreAccent"          Color="#4CA8F5"/>
+    <SolidColorBrush x:Key="StoreAccentHover"     Color="#6BBCFF"/>
+    <SolidColorBrush x:Key="StoreAccentLight"     Color="#152640"/>
+    <SolidColorBrush x:Key="StoreSoftAccent"      Color="#152230"/>
+    <SolidColorBrush x:Key="StoreDanger"          Color="#F04438"/>
+    <SolidColorBrush x:Key="StoreDangerHover"     Color="#D92D20"/>
+    <SolidColorBrush x:Key="StoreDangerLight"     Color="#3A1514"/>
+    <SolidColorBrush x:Key="StoreWarning"         Color="#F79009"/>
+    <SolidColorBrush x:Key="StoreWarningLight"    Color="#2D1D06"/>
+    <SolidColorBrush x:Key="StoreSuccess"         Color="#17B26A"/>
+    <SolidColorBrush x:Key="StoreSuccessLight"    Color="#082018"/>
+    <SolidColorBrush x:Key="StoreSidebarBg"       Color="#161719"/>
+    <SolidColorBrush x:Key="StoreCardBorderHover" Color="#4CA8F5"/>
+    <SolidColorBrush x:Key="StoreToggleOff"       Color="#3A3D4A"/>
+    <SolidColorBrush x:Key="StoreToggleThumb"     Color="#D0D2DA"/>
 
-    <DropShadowEffect x:Key="SoftShadow"  Color="#20000000" BlurRadius="24" ShadowDepth="3" Opacity="0.24"/>
-    <DropShadowEffect x:Key="CardShadow"  Color="#14000000" BlurRadius="12" ShadowDepth="1" Opacity="0.18"/>
-    <DropShadowEffect x:Key="HoverShadow" Color="#200067C0" BlurRadius="18" ShadowDepth="0" Opacity="0.30"/>
+    <DropShadowEffect x:Key="SoftShadow"  Color="#60000000" BlurRadius="24" ShadowDepth="3" Opacity="0.55"/>
+    <DropShadowEffect x:Key="CardShadow"  Color="#40000000" BlurRadius="12" ShadowDepth="1" Opacity="0.40"/>
+    <DropShadowEffect x:Key="HoverShadow" Color="#304CA8F5" BlurRadius="18" ShadowDepth="0" Opacity="0.40"/>
 
     <LinearGradientBrush x:Key="HeroGradient" StartPoint="0,0" EndPoint="1,1">
-        <GradientStop Color="#E8F0FE" Offset="0"/>
-        <GradientStop Color="#EDE8FF" Offset="0.55"/>
-        <GradientStop Color="#E5F1FF" Offset="1"/>
+        <GradientStop Color="#151C30" Offset="0"/>
+        <GradientStop Color="#181428" Offset="0.55"/>
+        <GradientStop Color="#121E2E" Offset="1"/>
     </LinearGradientBrush>
 
     <!-- ════════════════════════════════════════════════════
@@ -63,7 +63,7 @@
                             <Setter TargetName="Root" Property="Opacity" Value="0.80"/>
                         </Trigger>
                         <Trigger Property="IsEnabled" Value="False">
-                            <Setter TargetName="Root" Property="Opacity" Value="0.45"/>
+                            <Setter TargetName="Root" Property="Opacity" Value="0.40"/>
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
@@ -157,7 +157,7 @@
         <Setter Property="Margin"          Value="3"/>
         <Setter Property="Padding"         Value="12,9"/>
         <Setter Property="FontSize"        Value="14"/>
-        <Setter Property="Background"      Value="{DynamicResource StoreSurface}"/>
+        <Setter Property="Background"      Value="{DynamicResource StoreSurfaceAlt}"/>
         <Setter Property="Foreground"      Value="{DynamicResource StoreText}"/>
         <Setter Property="BorderBrush"     Value="{DynamicResource StoreBorder}"/>
         <Setter Property="BorderThickness" Value="1"/>
@@ -184,10 +184,10 @@
 
     <!-- Toggle switch CheckBox -->
     <Style TargetType="CheckBox">
-        <Setter Property="Foreground"       Value="{DynamicResource StoreText}"/>
-        <Setter Property="FontSize"         Value="14"/>
+        <Setter Property="Foreground"        Value="{DynamicResource StoreText}"/>
+        <Setter Property="FontSize"          Value="14"/>
         <Setter Property="VerticalAlignment" Value="Center"/>
-        <Setter Property="Cursor"           Value="Hand"/>
+        <Setter Property="Cursor"            Value="Hand"/>
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="CheckBox">
@@ -204,9 +204,9 @@
                     </StackPanel>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsChecked" Value="True">
-                            <Setter TargetName="Track" Property="Background" Value="{DynamicResource StoreAccent}"/>
-                            <Setter TargetName="Thumb" Property="Margin"              Value="0,0,3,0"/>
-                            <Setter TargetName="Thumb" Property="HorizontalAlignment" Value="Right"/>
+                            <Setter TargetName="Track" Property="Background"           Value="{DynamicResource StoreAccent}"/>
+                            <Setter TargetName="Thumb" Property="Margin"               Value="0,0,3,0"/>
+                            <Setter TargetName="Thumb" Property="HorizontalAlignment"  Value="Right"/>
                         </Trigger>
                         <Trigger Property="IsEnabled" Value="False">
                             <Setter TargetName="Track" Property="Opacity" Value="0.5"/>
@@ -240,7 +240,6 @@
         </Setter>
     </Style>
 
-    <!-- Danger progress (for high disk usage) -->
     <Style x:Key="DangerProgress" TargetType="ProgressBar" BasedOn="{StaticResource {x:Type ProgressBar}}">
         <Setter Property="Foreground" Value="{DynamicResource StoreDanger}"/>
     </Style>
@@ -299,18 +298,18 @@
         <Style.Triggers>
             <Trigger Property="IsMouseOver" Value="True">
                 <Setter Property="BorderBrush">
-                    <Setter.Value><SolidColorBrush Color="#0067C0" Opacity="0.55"/></Setter.Value>
+                    <Setter.Value><SolidColorBrush Color="#4CA8F5" Opacity="0.50"/></Setter.Value>
                 </Setter>
             </Trigger>
         </Style.Triggers>
     </Style>
 
     <Style x:Key="HeroCard" TargetType="Border" BasedOn="{StaticResource StoreCard}">
-        <Setter Property="Background" Value="{StaticResource HeroGradient}"/>
-        <Setter Property="Padding"    Value="28"/>
-        <Setter Property="Margin"     Value="0,0,0,20"/>
-        <Setter Property="Effect"     Value="{DynamicResource SoftShadow}"/>
-        <Setter Property="BorderBrush" Value="#C7D7F8"/>
+        <Setter Property="Background"  Value="{StaticResource HeroGradient}"/>
+        <Setter Property="Padding"     Value="28"/>
+        <Setter Property="Margin"      Value="0,0,0,20"/>
+        <Setter Property="Effect"      Value="{DynamicResource SoftShadow}"/>
+        <Setter Property="BorderBrush" Value="#2A3050"/>
     </Style>
 
     <Style x:Key="FeatureCard" TargetType="Border" BasedOn="{StaticResource StoreCard}">
@@ -348,7 +347,7 @@
         <Style.Triggers>
             <Trigger Property="IsMouseOver" Value="True">
                 <Setter Property="Background">
-                    <Setter.Value><SolidColorBrush Color="#F8F9FB"/></Setter.Value>
+                    <Setter.Value><SolidColorBrush Color="#242529"/></Setter.Value>
                 </Setter>
             </Trigger>
         </Style.Triggers>
@@ -387,9 +386,9 @@
     </Style>
 
     <Style x:Key="PageSubtitle" TargetType="TextBlock">
-        <Setter Property="Foreground" Value="{DynamicResource StoreSubText}"/>
-        <Setter Property="FontSize"   Value="13"/>
-        <Setter Property="Margin"     Value="0,0,0,20"/>
+        <Setter Property="Foreground"   Value="{DynamicResource StoreSubText}"/>
+        <Setter Property="FontSize"     Value="13"/>
+        <Setter Property="Margin"       Value="0,0,0,20"/>
         <Setter Property="TextWrapping" Value="Wrap"/>
     </Style>
 
@@ -397,12 +396,12 @@
          MISCELLANEOUS
     ════════════════════════════════════════════════════ -->
     <Style TargetType="StatusBar">
-        <Setter Property="Background"       Value="{DynamicResource StoreSurface}"/>
-        <Setter Property="Foreground"       Value="{DynamicResource StoreSubText}"/>
-        <Setter Property="FontSize"         Value="12"/>
-        <Setter Property="Padding"          Value="16,5"/>
-        <Setter Property="BorderBrush"      Value="{DynamicResource StoreBorder}"/>
-        <Setter Property="BorderThickness"  Value="0,1,0,0"/>
+        <Setter Property="Background"      Value="{DynamicResource StoreSurface}"/>
+        <Setter Property="Foreground"      Value="{DynamicResource StoreSubText}"/>
+        <Setter Property="FontSize"        Value="12"/>
+        <Setter Property="Padding"         Value="16,5"/>
+        <Setter Property="BorderBrush"     Value="{DynamicResource StoreBorder}"/>
+        <Setter Property="BorderThickness" Value="0,1,0,0"/>
     </Style>
 
 </ResourceDictionary>
