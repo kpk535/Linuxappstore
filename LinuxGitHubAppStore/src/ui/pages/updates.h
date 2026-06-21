@@ -8,6 +8,7 @@ typedef struct {
     GtkListBox *list;
     GtkLabel   *hint;
     GtkButton  *check_btn;
+    GtkSpinner *spinner;
 } PageUpdates;
 
 PageUpdates *page_updates_new(void);

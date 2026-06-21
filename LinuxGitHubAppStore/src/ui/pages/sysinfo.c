@@ -49,8 +49,8 @@ static char *get_cpu_model(void) {
     return strdup("Unknown CPU");
 }
 
-static void get_memory_mb(unsigned long *total, unsigned long *avail) {
-    *total = 0; *avail = 0;
+static void get_memory_mb(unsigned long *total, unsigned long *used, unsigned long *avail) {
+    *total = 0; *used = 0; *avail = 0;
     FILE *f = fopen("/proc/meminfo", "r");
     if (!f) return;
     char line[256];
@@ -60,6 +60,7 @@ static void get_memory_mb(unsigned long *total, unsigned long *avail) {
         if (sscanf(line, "MemAvailable: %lu kB", &kb) == 1) *avail = kb / 1024;
     }
     fclose(f);
+    if (*total > *avail) *used = *total - *avail;
 }
 
 static GtkWidget *stat_card(const char *icon, const char *value, const char *label) {
@@ -67,7 +68,7 @@ static GtkWidget *stat_card(const char *icon, const char *value, const char *lab
     gtk_widget_add_css_class(GTK_WIDGET(card), "stat-box");
     gtk_widget_set_hexpand(GTK_WIDGET(card), TRUE);
 
-    char markup[64];
+    char markup[80];
     snprintf(markup, sizeof(markup), "<span size='xx-large'>%s</span>", icon);
     GtkLabel *ico = GTK_LABEL(gtk_label_new(NULL));
     gtk_label_set_markup(ico, markup);
@@ -87,6 +88,39 @@ static GtkWidget *stat_card(const char *icon, const char *value, const char *lab
     gtk_box_append(card, GTK_WIDGET(lbl));
 
     return GTK_WIDGET(card);
+}
+
+static GtkWidget *usage_bar(const char *label, const char *detail,
+                             double fraction, const char *bar_css) {
+    GtkBox *box = GTK_BOX(gtk_box_new(GTK_ORIENTATION_VERTICAL, 6));
+    gtk_widget_add_css_class(GTK_WIDGET(box), "stat-box");
+    gtk_widget_set_hexpand(GTK_WIDGET(box), TRUE);
+
+    GtkBox *hdr = GTK_BOX(gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 4));
+    GtkLabel *lbl = GTK_LABEL(gtk_label_new(label));
+    gtk_widget_add_css_class(GTK_WIDGET(lbl), "stat-label");
+    gtk_widget_set_hexpand(GTK_WIDGET(lbl), TRUE);
+    gtk_label_set_xalign(lbl, 0.0f);
+    gtk_box_append(hdr, GTK_WIDGET(lbl));
+
+    GtkLabel *det = GTK_LABEL(gtk_label_new(detail));
+    gtk_widget_add_css_class(GTK_WIDGET(det), "muted");
+    gtk_box_append(hdr, GTK_WIDGET(det));
+    gtk_box_append(box, GTK_WIDGET(hdr));
+
+    GtkProgressBar *bar = GTK_PROGRESS_BAR(gtk_progress_bar_new());
+    gtk_widget_add_css_class(GTK_WIDGET(bar), bar_css);
+    gtk_progress_bar_set_fraction(bar, fraction);
+    gtk_box_append(box, GTK_WIDGET(bar));
+
+    char pct_str[16];
+    snprintf(pct_str, sizeof(pct_str), "%.0f%%", fraction * 100.0);
+    GtkLabel *pct = GTK_LABEL(gtk_label_new(pct_str));
+    gtk_widget_add_css_class(GTK_WIDGET(pct), "stat-value");
+    gtk_label_set_xalign(pct, 0.5f);
+    gtk_box_append(box, GTK_WIDGET(pct));
+
+    return GTK_WIDGET(box);
 }
 
 PageSysinfo *page_sysinfo_new(void) {
@@ -125,8 +159,8 @@ PageSysinfo *page_sysinfo_new(void) {
     char *os_pretty = read_os_field("PRETTY_NAME");
     char *cpu_model = get_cpu_model();
 
-    unsigned long mem_total = 0, mem_avail = 0;
-    get_memory_mb(&mem_total, &mem_avail);
+    unsigned long mem_total = 0, mem_used = 0, mem_avail = 0;
+    get_memory_mb(&mem_total, &mem_used, &mem_avail);
 
     unsigned long disk_total_gb = 0, disk_free_gb = 0;
     struct statvfs vfs;
@@ -134,38 +168,42 @@ PageSysinfo *page_sysinfo_new(void) {
         disk_total_gb = (unsigned long)((double)vfs.f_blocks * vfs.f_frsize / (1024.0*1024.0*1024.0));
         disk_free_gb  = (unsigned long)((double)vfs.f_bfree  * vfs.f_frsize / (1024.0*1024.0*1024.0));
     }
+    unsigned long disk_used_gb = disk_total_gb > disk_free_gb
+                                 ? disk_total_gb - disk_free_gb : 0;
 
-    /* Row 1 */
+    /* Row 1: Hostname + OS */
     GtkBox *r1 = GTK_BOX(gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 12));
     gtk_box_append(r1, stat_card("🖥", hostname, "Hostname"));
     gtk_box_append(r1, stat_card("🐧", os_pretty ?: "Linux", "Operating System"));
     gtk_box_append(inner, GTK_WIDGET(r1));
 
-    /* Row 2 */
+    /* Row 2: Kernel + CPU */
     GtkBox *r2 = GTK_BOX(gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 12));
     gtk_box_append(r2, stat_card("⚙", uts.release, "Kernel"));
-
     char cpu_short[128];
     snprintf(cpu_short, sizeof(cpu_short), "%.126s", cpu_model);
     gtk_box_append(r2, stat_card("🔧", cpu_short, "Processor"));
     gtk_box_append(inner, GTK_WIDGET(r2));
 
-    /* Row 3 */
+    /* Row 3: Architecture + System */
     GtkBox *r3 = GTK_BOX(gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 12));
-
-    char ram_str[64];
-    snprintf(ram_str, sizeof(ram_str), "%lu MB / %lu MB free", mem_total, mem_avail);
-    gtk_box_append(r3, stat_card("🧠", ram_str, "Memory (RAM)"));
-
-    char disk_str[64];
-    snprintf(disk_str, sizeof(disk_str), "%lu GB / %lu GB free", disk_total_gb, disk_free_gb);
-    gtk_box_append(r3, stat_card("💾", disk_str, "Root Disk"));
+    gtk_box_append(r3, stat_card("🏗", uts.machine, "Architecture"));
+    gtk_box_append(r3, stat_card("🔤", uts.sysname, "System Name"));
     gtk_box_append(inner, GTK_WIDGET(r3));
 
-    /* Row 4 */
+    /* Row 4: RAM and Disk usage bars */
     GtkBox *r4 = GTK_BOX(gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 12));
-    gtk_box_append(r4, stat_card("🏗", uts.machine, "Architecture"));
-    gtk_box_append(r4, stat_card("🔤", uts.sysname, "System Name"));
+
+    double ram_frac = mem_total > 0 ? (double)mem_used / (double)mem_total : 0.0;
+    char ram_detail[64];
+    snprintf(ram_detail, sizeof(ram_detail), "%lu MB used / %lu MB total", mem_used, mem_total);
+    gtk_box_append(r4, usage_bar("MEMORY", ram_detail, ram_frac, "ram"));
+
+    double disk_frac = disk_total_gb > 0 ? (double)disk_used_gb / (double)disk_total_gb : 0.0;
+    char disk_detail[64];
+    snprintf(disk_detail, sizeof(disk_detail), "%lu GB used / %lu GB total", disk_used_gb, disk_total_gb);
+    gtk_box_append(r4, usage_bar("ROOT DISK", disk_detail, disk_frac, "disk"));
+
     gtk_box_append(inner, GTK_WIDGET(r4));
 
     GtkBox *spacer = GTK_BOX(gtk_box_new(GTK_ORIENTATION_VERTICAL, 0));

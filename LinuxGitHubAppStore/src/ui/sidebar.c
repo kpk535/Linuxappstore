@@ -1,9 +1,27 @@
 #include "sidebar.h"
 #include <stdlib.h>
 
-static void on_nav_clicked(GtkButton *button, gpointer page_name) {
-    GtkStack *pages = g_object_get_data(G_OBJECT(button), "pages");
-    gtk_stack_set_visible_child_name(pages, (const char *)page_name);
+#define MAX_NAV 8
+
+typedef struct {
+    GtkStack  *pages;
+    GtkButton *buttons[MAX_NAV];
+    int        count;
+} NavGroup;
+
+typedef struct {
+    NavGroup   *group;
+    const char *page;
+} NavData;
+
+static void on_nav_clicked(GtkButton *button, gpointer data) {
+    NavData *d = (NavData *)data;
+
+    for (int i = 0; i < d->group->count; i++)
+        gtk_widget_remove_css_class(GTK_WIDGET(d->group->buttons[i]), "nav-active");
+
+    gtk_widget_add_css_class(GTK_WIDGET(button), "nav-active");
+    gtk_stack_set_visible_child_name(d->group->pages, d->page);
 }
 
 void app_sidebar_init(GtkBox *sidebar, GtkStack *pages) {
@@ -19,9 +37,10 @@ void app_sidebar_init(GtkBox *sidebar, GtkStack *pages) {
     gtk_box_append(sidebar, GTK_WIDGET(sub));
 
     GtkSeparator *sep = GTK_SEPARATOR(gtk_separator_new(GTK_ORIENTATION_HORIZONTAL));
-    gtk_widget_set_margin_start(GTK_WIDGET(sep), 12);
-    gtk_widget_set_margin_end(GTK_WIDGET(sep), 12);
-    gtk_widget_set_margin_bottom(GTK_WIDGET(sep), 6);
+    gtk_widget_set_margin_start(GTK_WIDGET(sep), 14);
+    gtk_widget_set_margin_end(GTK_WIDGET(sep), 14);
+    gtk_widget_set_margin_bottom(GTK_WIDGET(sep), 8);
+    gtk_widget_set_opacity(GTK_WIDGET(sep), 0.15);
     gtk_box_append(sidebar, GTK_WIDGET(sep));
 
     /* Nav items */
@@ -34,18 +53,30 @@ void app_sidebar_init(GtkBox *sidebar, GtkStack *pages) {
         { "💻  System Info", "sysinfo"  },
         { "⚙   Settings",   "settings" },
     };
+    static const int n_items = (int)(sizeof(items)/sizeof(items[0]));
 
-    for (size_t i = 0; i < sizeof(items)/sizeof(items[0]); i++) {
+    NavGroup *group = calloc(1, sizeof(NavGroup));
+    group->pages = pages;
+    group->count = n_items;
+
+    for (int i = 0; i < n_items; i++) {
         GtkButton *btn = GTK_BUTTON(gtk_button_new_with_label(items[i].label));
         gtk_widget_add_css_class(GTK_WIDGET(btn), "nav-button");
-        gtk_widget_set_size_request(GTK_WIDGET(btn), -1, 42);
-        gtk_label_set_xalign(
-            GTK_LABEL(gtk_button_get_child(btn)), 0.0f);
-        g_object_set_data(G_OBJECT(btn), "pages", pages);
-        g_signal_connect(btn, "clicked", G_CALLBACK(on_nav_clicked),
-                         (gpointer)items[i].page);
+        gtk_widget_set_size_request(GTK_WIDGET(btn), -1, 44);
+        gtk_label_set_xalign(GTK_LABEL(gtk_button_get_child(btn)), 0.0f);
+
+        group->buttons[i] = btn;
+
+        NavData *nd = malloc(sizeof(NavData));
+        nd->group = group;
+        nd->page  = items[i].page;
+
+        g_signal_connect(btn, "clicked", G_CALLBACK(on_nav_clicked), nd);
         gtk_box_append(sidebar, GTK_WIDGET(btn));
     }
+
+    /* Default: highlight Search */
+    gtk_widget_add_css_class(GTK_WIDGET(group->buttons[0]), "nav-active");
 
     /* Spacer */
     GtkBox *spacer = GTK_BOX(gtk_box_new(GTK_ORIENTATION_VERTICAL, 0));
@@ -54,6 +85,6 @@ void app_sidebar_init(GtkBox *sidebar, GtkStack *pages) {
 
     GtkLabel *ver = GTK_LABEL(gtk_label_new("v1.1.0  •  Open Source"));
     gtk_widget_add_css_class(GTK_WIDGET(ver), "sidebar-version");
-    gtk_widget_set_margin_bottom(GTK_WIDGET(ver), 10);
+    gtk_widget_set_margin_bottom(GTK_WIDGET(ver), 12);
     gtk_box_append(sidebar, GTK_WIDGET(ver));
 }

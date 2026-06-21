@@ -241,40 +241,50 @@ static void load_releases(PageHome *page) {
             gtk_box_append(rel_box, GTK_WIDGET(no_a));
         }
 
-        /* Filter: prefer Linux-relevant assets */
+        /* Per-asset rows with colored type badges */
         for (int j = 0; j < rel->asset_count; j++) {
             ReleaseAsset *asset = rel->assets[j];
             if (!asset->name || !asset->download_url) continue;
 
             InstallType t = installer_detect_type(asset->name);
-            /* Highlight supported types */
-            const char *type_tag = "";
-            if      (t == INSTALL_TYPE_APPIMAGE) type_tag = " [AppImage]";
-            else if (t == INSTALL_TYPE_DEB)      type_tag = " [deb]";
-            else if (t == INSTALL_TYPE_TARBALL)  type_tag = " [tar]";
-            else if (t == INSTALL_TYPE_ZIP)      type_tag = " [zip]";
-            else if (t == INSTALL_TYPE_RPM)      type_tag = " [rpm]";
+            const char *badge_text  = NULL;
+            const char *badge_class = NULL;
+            if      (t == INSTALL_TYPE_APPIMAGE) { badge_text = "AppImage"; badge_class = "badge-appimage"; }
+            else if (t == INSTALL_TYPE_DEB)      { badge_text = "deb";      badge_class = "badge-deb"; }
+            else if (t == INSTALL_TYPE_TARBALL)  { badge_text = "tar";      badge_class = "badge-tar"; }
+            else if (t == INSTALL_TYPE_ZIP)      { badge_text = "zip";      badge_class = "badge-zip"; }
+            else if (t == INSTALL_TYPE_RPM)      { badge_text = "rpm";      badge_class = "badge-rpm"; }
 
             GtkBox *asset_row = GTK_BOX(gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 8));
             gtk_widget_set_margin_start(GTK_WIDGET(asset_row), 8);
-            gtk_widget_set_margin_top(GTK_WIDGET(asset_row), 2);
+            gtk_widget_set_margin_top(GTK_WIDGET(asset_row), 3);
+            gtk_widget_set_margin_bottom(GTK_WIDGET(asset_row), 3);
+            gtk_widget_set_margin_end(GTK_WIDGET(asset_row), 8);
 
-            char size_str[32] = "";
-            if (asset->size > 0) {
-                if (asset->size >= 1024*1024)
-                    snprintf(size_str, sizeof(size_str), "  %.1f MB", asset->size/1048576.0);
-                else
-                    snprintf(size_str, sizeof(size_str), "  %ld KB", asset->size/1024);
-            }
-            char asset_label[384];
-            snprintf(asset_label, sizeof(asset_label),
-                     "%s%s%s", asset->name, type_tag, size_str);
-
-            GtkLabel *a_lbl = GTK_LABEL(gtk_label_new(asset_label));
+            GtkLabel *a_lbl = GTK_LABEL(gtk_label_new(asset->name));
             gtk_label_set_xalign(a_lbl, 0.0f);
             gtk_label_set_ellipsize(a_lbl, PANGO_ELLIPSIZE_MIDDLE);
             gtk_widget_set_hexpand(GTK_WIDGET(a_lbl), TRUE);
             gtk_box_append(asset_row, GTK_WIDGET(a_lbl));
+
+            if (badge_text) {
+                GtkLabel *badge = GTK_LABEL(gtk_label_new(badge_text));
+                gtk_widget_add_css_class(GTK_WIDGET(badge), badge_class);
+                gtk_widget_set_valign(GTK_WIDGET(badge), GTK_ALIGN_CENTER);
+                gtk_box_append(asset_row, GTK_WIDGET(badge));
+            }
+
+            if (asset->size > 0) {
+                char size_str[24];
+                if (asset->size >= 1024*1024)
+                    snprintf(size_str, sizeof(size_str), "%.1f MB", asset->size/1048576.0);
+                else
+                    snprintf(size_str, sizeof(size_str), "%ld KB", asset->size/1024);
+                GtkLabel *sz = GTK_LABEL(gtk_label_new(size_str));
+                gtk_widget_add_css_class(GTK_WIDGET(sz), "muted");
+                gtk_widget_set_valign(GTK_WIDGET(sz), GTK_ALIGN_CENTER);
+                gtk_box_append(asset_row, GTK_WIDGET(sz));
+            }
 
             GtkButton *install_btn = GTK_BUTTON(gtk_button_new_with_label("Install"));
             gtk_widget_add_css_class(GTK_WIDGET(install_btn), "suggested-action");
@@ -429,14 +439,28 @@ static void do_search(PageHome *page, const char *query) {
             gtk_box_append(item, GTK_WIDGET(desc));
         }
 
+        /* Bottom row: language + forks */
+        GtkBox *bottom_row = GTK_BOX(gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 8));
+        gtk_widget_set_margin_top(GTK_WIDGET(bottom_row), 4);
+
         if (r->language && strlen(r->language) > 0) {
             GtkLabel *lang = GTK_LABEL(gtk_label_new(r->language));
             gtk_label_set_xalign(lang, 0.0f);
-            gtk_widget_add_css_class(GTK_WIDGET(lang), "chip");
-            gtk_widget_set_halign(GTK_WIDGET(lang), GTK_ALIGN_START);
-            gtk_widget_set_margin_top(GTK_WIDGET(lang), 2);
-            gtk_box_append(item, GTK_WIDGET(lang));
+            gtk_widget_add_css_class(GTK_WIDGET(lang), "badge-lang");
+            gtk_widget_set_valign(GTK_WIDGET(lang), GTK_ALIGN_CENTER);
+            gtk_box_append(bottom_row, GTK_WIDGET(lang));
         }
+
+        if (r->forks > 0) {
+            char forks_str[32];
+            snprintf(forks_str, sizeof(forks_str), "🍴 %d", r->forks);
+            GtkLabel *forks_lbl = GTK_LABEL(gtk_label_new(forks_str));
+            gtk_widget_add_css_class(GTK_WIDGET(forks_lbl), "muted");
+            gtk_widget_set_valign(GTK_WIDGET(forks_lbl), GTK_ALIGN_CENTER);
+            gtk_box_append(bottom_row, GTK_WIDGET(forks_lbl));
+        }
+
+        gtk_box_append(item, GTK_WIDGET(bottom_row));
 
         GtkListBoxRow *row = GTK_LIST_BOX_ROW(gtk_list_box_row_new());
         gtk_list_box_row_set_child(row, GTK_WIDGET(item));
