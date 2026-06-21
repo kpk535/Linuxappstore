@@ -30,6 +30,7 @@ public class MainViewModel : INotifyPropertyChanged
     private readonly SystemInfoService _sysInfoService = new();
     private readonly ProcessService _processService = new();
     private readonly EnvVarService _envVarService = new();
+    private readonly StoreUpdateService _storeUpdater = new();
 
     private AppSettings _settings;
 
@@ -48,6 +49,12 @@ public class MainViewModel : INotifyPropertyChanged
     private string _cleanStatus = string.Empty;
     private int    _updateCount;
     private bool   _isDarkMode;
+
+    // ── Store update ─────────────────────────────────────────────────────────
+    private bool   _isCheckingStoreUpdate;
+    private string _storeUpdateStatus = string.Empty;
+    private bool   _hasStoreUpdate;
+    private string _storeLatestVersion = string.Empty;
 
     // ── Winget / Windows Apps / Startup ──────────────────────────────────────
     private string _wingetQuery = string.Empty;
@@ -98,6 +105,14 @@ public class MainViewModel : INotifyPropertyChanged
     public string SelectedAppLatestVersion { get => _selectedAppLatestVersion; set { _selectedAppLatestVersion = value; OnPropertyChanged(); } }
     public string CleanStatus { get => _cleanStatus; set { _cleanStatus = value; OnPropertyChanged(); OnPropertyChanged(nameof(HasCleanStatus)); } }
     public bool   IsDarkMode  { get => _isDarkMode;  set { _isDarkMode  = value; OnPropertyChanged(); } }
+
+    // ── Properties: Store update ─────────────────────────────────────────────
+    public bool   IsCheckingStoreUpdate { get => _isCheckingStoreUpdate; set { _isCheckingStoreUpdate = value; OnPropertyChanged(); } }
+    public string StoreUpdateStatus     { get => _storeUpdateStatus;     set { _storeUpdateStatus = value; OnPropertyChanged(); OnPropertyChanged(nameof(HasStoreUpdateStatus)); } }
+    public bool   HasStoreUpdateStatus  => !string.IsNullOrEmpty(_storeUpdateStatus);
+    public bool   HasStoreUpdate        { get => _hasStoreUpdate;        set { _hasStoreUpdate = value; OnPropertyChanged(); } }
+    public string StoreLatestVersion    { get => _storeLatestVersion;    set { _storeLatestVersion = value; OnPropertyChanged(); } }
+    public string StoreCurrentVersion   => _storeUpdater.CurrentVersion;
 
     // ── Properties: Winget / Windows Apps / Startup ──────────────────────────
     public string WingetQuery  { get => _wingetQuery;  set { _wingetQuery  = value; OnPropertyChanged(); } }
@@ -342,6 +357,8 @@ public class MainViewModel : INotifyPropertyChanged
     public ICommand NewEnvVarCommand            { get; }
     public ICommand SaveEnvVarCommand           { get; }
     public ICommand DeleteEnvVarCommand         { get; }
+    public ICommand CheckStoreUpdateCommand     { get; }
+    public ICommand DownloadStoreUpdateCommand  { get; }
 
     // ── Constructor ───────────────────────────────────────────────────────────
     public MainViewModel()
@@ -504,6 +521,7 @@ public class MainViewModel : INotifyPropertyChanged
             _gitHubService.AccessToken  = _settings.GitHubToken;
             _releaseService.AccessToken = _settings.GitHubToken;
             _scanner.AccessToken        = _settings.GitHubToken;
+            _storeUpdater.AccessToken   = _settings.GitHubToken;
             SettingsStatus = "Settings saved successfully.";
             StatusText     = "Settings saved.";
             OnPropertyChanged(nameof(ShowLoginBanner));
@@ -630,6 +648,10 @@ public class MainViewModel : INotifyPropertyChanged
             catch (Exception ex) { EnvVarStatus = "Delete failed: " + ex.Message; }
         });
 
+        // ── Store update commands ─────────────────────────────────────────────
+        CheckStoreUpdateCommand    = new RelayCommand(async _ => await CheckStoreUpdateAsync(), _ => !_isCheckingStoreUpdate);
+        DownloadStoreUpdateCommand = new RelayCommand(async _ => await DownloadStoreUpdateAsync(), _ => !_isCheckingStoreUpdate);
+
         // ── Collection notifications ──────────────────────────────────────────
         InstalledApps.CollectionChanged  += (_, _) => OnPropertyChanged(nameof(HasNoInstalledApps));
         WindowsApps.CollectionChanged    += (_, _) => OnPropertyChanged(nameof(HasNoWindowsApps));
@@ -645,6 +667,7 @@ public class MainViewModel : INotifyPropertyChanged
             _gitHubService.AccessToken  = _settings.GitHubToken;
             _releaseService.AccessToken = _settings.GitHubToken;
             _scanner.AccessToken        = _settings.GitHubToken;
+            _storeUpdater.AccessToken   = _settings.GitHubToken;
         }
 
         _ = LoadFeaturedAsync();
@@ -802,6 +825,50 @@ public class MainViewModel : INotifyPropertyChanged
         var toUpdate = AppsWithUpdates.ToList();
         foreach (var app in toUpdate) await UpgradeAsync(app);
         StatusText = $"Updated {toUpdate.Count} app(s).";
+    }
+
+    // ── Store self-update ─────────────────────────────────────────────────────
+    private async Task CheckStoreUpdateAsync()
+    {
+        IsCheckingStoreUpdate = true;
+        StoreUpdateStatus     = "Checking for updates…";
+        try
+        {
+            var result = await _storeUpdater.CheckStoreUpdateAsync();
+            if (result.StartsWith("Update available:"))
+            {
+                HasStoreUpdate     = true;
+                StoreLatestVersion = result["Update available: ".Length..].Trim();
+                StoreUpdateStatus  = result;
+            }
+            else
+            {
+                HasStoreUpdate    = false;
+                StoreUpdateStatus = result;
+            }
+        }
+        catch (Exception ex) { StoreUpdateStatus = "Check failed: " + ex.Message; }
+        finally { IsCheckingStoreUpdate = false; }
+    }
+
+    private async Task DownloadStoreUpdateAsync()
+    {
+        StoreUpdateStatus = "Downloading update…";
+        try
+        {
+            var result = await _storeUpdater.DownloadStoreUpdateAsync();
+            if (result.Contains('\\') || result.Contains('/'))
+            {
+                HasStoreUpdate    = false;
+                StoreUpdateStatus = $"Downloaded: {System.IO.Path.GetFileName(result)}";
+                StatusText        = StoreUpdateStatus;
+            }
+            else
+            {
+                StoreUpdateStatus = result;
+            }
+        }
+        catch (Exception ex) { StoreUpdateStatus = "Download failed: " + ex.Message; }
     }
 
     // ── System Cleaner ────────────────────────────────────────────────────────

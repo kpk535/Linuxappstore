@@ -510,17 +510,52 @@
                                         <ColumnDefinition Width="Auto"/>
                                     </Grid.ColumnDefinitions>
                                     <StackPanel>
+                                        <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                                            <Border Background="{DynamicResource StoreAccent}" CornerRadius="6" Padding="8,4" Margin="0,0,10,0" VerticalAlignment="Center">
+                                                <TextBlock Text="OPEN SOURCE" Foreground="White" FontSize="10" FontWeight="Bold"/>
+                                            </Border>
+                                            <TextBlock Text="Windows app catalog powered by GitHub"
+                                                       Foreground="{DynamicResource StoreAccent}" FontSize="13" FontWeight="SemiBold"
+                                                       VerticalAlignment="Center"/>
+                                        </StackPanel>
                                         <TextBlock Text="Discover apps from GitHub"
                                                    Foreground="{DynamicResource StoreText}"
                                                    FontSize="32" FontWeight="Bold" TextWrapping="Wrap"/>
                                         <TextBlock Text="Search open-source Windows apps, download releases, install packages, and track updates — all in one place."
                                                    Foreground="{DynamicResource StoreSubText}"
-                                                   FontSize="14" Margin="0,8,0,0" TextWrapping="Wrap"/>
+                                                   FontSize="14" Margin="0,8,0,18" TextWrapping="Wrap"/>
+                                        <StackPanel Orientation="Horizontal">
+                                            <Button Content="Browse Apps"
+                                                    Command="{Binding SearchCommand}">
+                                                <Button.Style>
+                                                    <Style TargetType="Button" BasedOn="{StaticResource PrimaryButton}">
+                                                        <Setter Property="Padding" Value="20,10"/>
+                                                        <Setter Property="FontSize" Value="14"/>
+                                                    </Style>
+                                                </Button.Style>
+                                            </Button>
+                                            <Button Content="My Library"
+                                                    Command="{Binding NavigateCommand}"
+                                                    CommandParameter="Library"
+                                                    Margin="8,0,0,0">
+                                                <Button.Style>
+                                                    <Style TargetType="Button" BasedOn="{StaticResource GhostButton}">
+                                                        <Setter Property="Padding" Value="20,10"/>
+                                                        <Setter Property="FontSize" Value="14"/>
+                                                    </Style>
+                                                </Button.Style>
+                                            </Button>
+                                        </StackPanel>
                                     </StackPanel>
-                                    <TextBlock Grid.Column="1" Text="★"
-                                               Foreground="{DynamicResource StoreAccent}"
-                                               FontSize="80" VerticalAlignment="Center" Margin="24,0,0,0"
-                                               Opacity="0.35"/>
+                                    <!-- Decorative right column -->
+                                    <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="32,0,0,0">
+                                        <TextBlock Text="⊞" Foreground="{DynamicResource StoreAccent}"
+                                                   FontSize="72" Opacity="0.15" HorizontalAlignment="Center"/>
+                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,-8,0,0">
+                                            <TextBlock Text="★ " Foreground="{DynamicResource StoreWarning}" FontSize="12"/>
+                                            <TextBlock Text="5M+ repos" Foreground="{DynamicResource StoreSubText}" FontSize="12"/>
+                                        </StackPanel>
+                                    </StackPanel>
                                 </Grid>
                             </Border>
 
@@ -2007,6 +2042,104 @@
                                                 </Style>
                                             </Button.Style>
                                         </Button>
+                                    </Border>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- App Store Updates section -->
+                            <Border Style="{StaticResource SettingsGroup}">
+                                <StackPanel>
+                                    <Border Padding="20,14" BorderBrush="{DynamicResource StoreBorder}" BorderThickness="0,0,0,1">
+                                        <TextBlock Text="App Store Updates" Foreground="{DynamicResource StoreText}"
+                                                   FontSize="15" FontWeight="Bold"/>
+                                    </Border>
+
+                                    <!-- Current version + check button row -->
+                                    <Border Style="{StaticResource SettingsRow}">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <StackPanel VerticalAlignment="Center">
+                                                <TextBlock Text="Current Version" Foreground="{DynamicResource StoreText}"
+                                                           FontWeight="SemiBold"/>
+                                                <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                                                    <Border Background="{DynamicResource StoreAccentLight}"
+                                                            CornerRadius="6" Padding="8,3">
+                                                        <TextBlock Text="{Binding StoreCurrentVersion, StringFormat='v{0}'}"
+                                                                   Foreground="{DynamicResource StoreAccent}"
+                                                                   FontSize="12" FontWeight="SemiBold"/>
+                                                    </Border>
+                                                </StackPanel>
+                                            </StackPanel>
+                                            <Button Grid.Column="1" Content="Check for Updates"
+                                                    Command="{Binding CheckStoreUpdateCommand}"
+                                                    VerticalAlignment="Center">
+                                                <Button.Style>
+                                                    <Style TargetType="Button" BasedOn="{StaticResource GhostButton}">
+                                                        <Setter Property="Padding" Value="14,8"/>
+                                                    </Style>
+                                                </Button.Style>
+                                            </Button>
+                                        </Grid>
+                                    </Border>
+
+                                    <!-- Checking indicator row -->
+                                    <Border Padding="20,10"
+                                            Visibility="{Binding IsCheckingStoreUpdate, Converter={StaticResource BoolToVis}}">
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Text="⟳" FontSize="14" Foreground="{DynamicResource StoreAccent}"
+                                                       VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                            <TextBlock Text="Checking GitHub for updates…"
+                                                       Foreground="{DynamicResource StoreSubText}" FontSize="13"
+                                                       VerticalAlignment="Center"/>
+                                        </StackPanel>
+                                    </Border>
+
+                                    <!-- Status + download row (shown when there's a result) -->
+                                    <Border Padding="20,14"
+                                            Visibility="{Binding HasStoreUpdateStatus, Converter={StaticResource BoolToVis}}">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <StackPanel VerticalAlignment="Center">
+                                                <TextBlock Text="{Binding StoreUpdateStatus}"
+                                                           Foreground="{DynamicResource StoreText}"
+                                                           FontSize="13" TextWrapping="Wrap"/>
+                                                <!-- Version comparison: old → new (only when update available) -->
+                                                <StackPanel Orientation="Horizontal" Margin="0,8,0,0"
+                                                            Visibility="{Binding HasStoreUpdate, Converter={StaticResource BoolToVis}}">
+                                                    <Border Background="{DynamicResource StoreDangerLight}"
+                                                            CornerRadius="6" Padding="8,3" Margin="0,0,6,0">
+                                                        <TextBlock Text="{Binding StoreCurrentVersion, StringFormat='v{0}'}"
+                                                                   Foreground="{DynamicResource StoreDanger}"
+                                                                   FontSize="11" TextDecorations="Strikethrough"/>
+                                                    </Border>
+                                                    <TextBlock Text="→" Foreground="{DynamicResource StoreAccent}"
+                                                               FontSize="13" FontWeight="Bold"
+                                                               VerticalAlignment="Center" Margin="0,0,6,0"/>
+                                                    <Border Background="{DynamicResource StoreSuccessLight}"
+                                                            CornerRadius="6" Padding="8,3">
+                                                        <TextBlock Text="{Binding StoreLatestVersion}"
+                                                                   Foreground="{DynamicResource StoreSuccess}"
+                                                                   FontSize="11" FontWeight="SemiBold"/>
+                                                    </Border>
+                                                </StackPanel>
+                                            </StackPanel>
+                                            <Button Grid.Column="1" Content="Download Update"
+                                                    Command="{Binding DownloadStoreUpdateCommand}"
+                                                    Visibility="{Binding HasStoreUpdate, Converter={StaticResource BoolToVis}}"
+                                                    VerticalAlignment="Center">
+                                                <Button.Style>
+                                                    <Style TargetType="Button" BasedOn="{StaticResource PrimaryButton}">
+                                                        <Setter Property="Padding" Value="14,8"/>
+                                                    </Style>
+                                                </Button.Style>
+                                            </Button>
+                                        </Grid>
                                     </Border>
                                 </StackPanel>
                             </Border>

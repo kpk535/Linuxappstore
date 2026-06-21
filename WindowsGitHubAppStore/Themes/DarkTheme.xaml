@@ -30,6 +30,12 @@
     <DropShadowEffect x:Key="CardShadow"  Color="#40000000" BlurRadius="12" ShadowDepth="1" Opacity="0.40"/>
     <DropShadowEffect x:Key="HoverShadow" Color="#304CA8F5" BlurRadius="18" ShadowDepth="0" Opacity="0.40"/>
 
+    <LinearGradientBrush x:Key="HeroGradient" StartPoint="0,0" EndPoint="1,1">
+        <GradientStop Color="#151C30" Offset="0"/>
+        <GradientStop Color="#181428" Offset="0.55"/>
+        <GradientStop Color="#121E2E" Offset="1"/>
+    </LinearGradientBrush>
+
     <!-- ════════════════════════════════════════════════════
          BUTTONS
     ════════════════════════════════════════════════════ -->
@@ -299,10 +305,11 @@
     </Style>
 
     <Style x:Key="HeroCard" TargetType="Border" BasedOn="{StaticResource StoreCard}">
-        <Setter Property="Background" Value="{DynamicResource StoreSoftAccent}"/>
-        <Setter Property="Padding"    Value="28"/>
-        <Setter Property="Margin"     Value="0,0,0,20"/>
-        <Setter Property="Effect"     Value="{DynamicResource SoftShadow}"/>
+        <Setter Property="Background"  Value="{StaticResource HeroGradient}"/>
+        <Setter Property="Padding"     Value="28"/>
+        <Setter Property="Margin"      Value="0,0,0,20"/>
+        <Setter Property="Effect"      Value="{DynamicResource SoftShadow}"/>
+        <Setter Property="BorderBrush" Value="#2A3050"/>
     </Style>
 
     <Style x:Key="FeatureCard" TargetType="Border" BasedOn="{StaticResource StoreCard}">
