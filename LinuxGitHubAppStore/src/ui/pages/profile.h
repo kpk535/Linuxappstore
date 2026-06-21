@@ -5,6 +5,8 @@
 
 typedef struct {
     GtkBox    *box;
+    GtkBox    *banner;
+    GtkLabel  *avatar_label;
     GtkLabel  *login_label;
     GtkLabel  *name_label;
     GtkLabel  *bio_label;

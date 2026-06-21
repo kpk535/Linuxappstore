@@ -6,25 +6,57 @@
 #include <string.h>
 #include <stdio.h>
 
+static const char *acolors[] = {
+    "avatar-blue","avatar-green","avatar-purple",
+    "avatar-red","avatar-orange","avatar-pink","avatar-teal"
+};
+
 static void rebuild_list(PageUpdates *page, InstalledApp **apps, int count) {
     GtkWidget *child;
     while ((child = gtk_widget_get_first_child(GTK_WIDGET(page->list))))
         gtk_list_box_remove(page->list, child);
 
+    /* Empty state: no installed apps */
+    if (count == 0) {
+        GtkBox *empty = GTK_BOX(gtk_box_new(GTK_ORIENTATION_VERTICAL, 10));
+        gtk_widget_set_halign(GTK_WIDGET(empty), GTK_ALIGN_CENTER);
+        gtk_widget_set_valign(GTK_WIDGET(empty), GTK_ALIGN_CENTER);
+        gtk_widget_set_vexpand(GTK_WIDGET(empty), TRUE);
+        gtk_widget_set_margin_top(GTK_WIDGET(empty), 48);
+
+        GtkLabel *ico = GTK_LABEL(gtk_label_new("📦"));
+        gtk_widget_add_css_class(GTK_WIDGET(ico), "empty-icon");
+        gtk_label_set_xalign(ico, 0.5f);
+        gtk_box_append(empty, GTK_WIDGET(ico));
+
+        GtkLabel *msg = GTK_LABEL(gtk_label_new("No installed apps"));
+        gtk_widget_add_css_class(GTK_WIDGET(msg), "empty-text");
+        gtk_label_set_xalign(msg, 0.5f);
+        gtk_box_append(empty, GTK_WIDGET(msg));
+
+        GtkLabel *hint = GTK_LABEL(gtk_label_new("Install apps from the Search page first."));
+        gtk_widget_add_css_class(GTK_WIDGET(hint), "empty-hint");
+        gtk_label_set_xalign(hint, 0.5f);
+        gtk_box_append(empty, GTK_WIDGET(hint));
+
+        GtkListBoxRow *row = GTK_LIST_BOX_ROW(gtk_list_box_row_new());
+        gtk_list_box_row_set_selectable(row, FALSE);
+        gtk_list_box_row_set_child(row, GTK_WIDGET(empty));
+        gtk_list_box_append(page->list, GTK_WIDGET(row));
+
+        gtk_label_set_text(page->hint, "No apps installed yet.");
+        gtk_widget_remove_css_class(GTK_WIDGET(page->hint), "warning");
+        return;
+    }
+
     int updates = 0;
     for (int i = 0; i < count; i++)
         if (apps[i]->has_update) updates++;
 
-    if (count == 0) {
-        gtk_label_set_text(page->hint,
-            "No installed apps. Install apps from the Search page first.");
-        return;
-    }
-
     gtk_widget_remove_css_class(GTK_WIDGET(page->hint), "warning");
-    if (updates == 0)
+    if (updates == 0) {
         gtk_label_set_text(page->hint, "All apps are up to date.");
-    else {
+    } else {
         char msg[64];
         snprintf(msg, sizeof(msg), "%d update%s available.",
                  updates, updates == 1 ? "" : "s");
@@ -34,51 +66,62 @@ static void rebuild_list(PageUpdates *page, InstalledApp **apps, int count) {
 
     for (int i = 0; i < count; i++) {
         InstalledApp *app = apps[i];
+        const char *display = app->name ?: app->full_name ?: "?";
 
         GtkBox *row_box = GTK_BOX(gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 12));
-        gtk_widget_set_margin_start(GTK_WIDGET(row_box), 16);
-        gtk_widget_set_margin_end(GTK_WIDGET(row_box), 16);
-        gtk_widget_set_margin_top(GTK_WIDGET(row_box), 12);
-        gtk_widget_set_margin_bottom(GTK_WIDGET(row_box), 12);
+        gtk_widget_set_margin_start(GTK_WIDGET(row_box), 14);
+        gtk_widget_set_margin_end(GTK_WIDGET(row_box), 14);
+        gtk_widget_set_margin_top(GTK_WIDGET(row_box), 10);
+        gtk_widget_set_margin_bottom(GTK_WIDGET(row_box), 10);
 
-        /* Icon */
-        GtkLabel *ico = GTK_LABEL(gtk_label_new(app->has_update ? "⬆" : "✓"));
-        gtk_widget_set_valign(GTK_WIDGET(ico), GTK_ALIGN_CENTER);
-        gtk_box_append(row_box, GTK_WIDGET(ico));
+        /* Avatar circle */
+        char init_ch[4];
+        init_ch[0] = (display[0]) ? (char)g_ascii_toupper((guchar)display[0]) : '?';
+        init_ch[1] = '\0';
+        GtkLabel *avatar = GTK_LABEL(gtk_label_new(init_ch));
+        gtk_widget_add_css_class(GTK_WIDGET(avatar), "app-avatar");
+        gtk_widget_add_css_class(GTK_WIDGET(avatar),
+            acolors[(unsigned char)init_ch[0] % 7]);
+        gtk_widget_set_valign(GTK_WIDGET(avatar), GTK_ALIGN_CENTER);
+        gtk_box_append(row_box, GTK_WIDGET(avatar));
 
         /* Info column */
         GtkBox *info = GTK_BOX(gtk_box_new(GTK_ORIENTATION_VERTICAL, 5));
         gtk_widget_set_hexpand(GTK_WIDGET(info), TRUE);
 
-        char name_markup[256];
-        snprintf(name_markup, sizeof(name_markup),
-                 "<b>%s</b>", app->name ?: app->full_name ?: "?");
-        GtkLabel *name_lbl = GTK_LABEL(gtk_label_new(NULL));
-        gtk_label_set_markup(name_lbl, name_markup);
+        GtkLabel *name_lbl = GTK_LABEL(gtk_label_new(display));
+        gtk_widget_add_css_class(GTK_WIDGET(name_lbl), "stat-value");
         gtk_label_set_xalign(name_lbl, 0.0f);
+        gtk_label_set_ellipsize(name_lbl, PANGO_ELLIPSIZE_END);
         gtk_box_append(info, GTK_WIDGET(name_lbl));
 
-        GtkBox *ver_row = GTK_BOX(gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 8));
+        /* Version row */
+        GtkBox *ver_row = GTK_BOX(gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 6));
+        gtk_widget_set_valign(GTK_WIDGET(ver_row), GTK_ALIGN_CENTER);
+
         if (app->has_update && app->latest_version) {
-            char inst[64], latest[80];
-            snprintf(inst,   sizeof(inst),   "Installed: %s", app->version ?: "?");
-            snprintf(latest, sizeof(latest), "→  Latest: %s", app->latest_version);
-            GtkLabel *il = GTK_LABEL(gtk_label_new(inst));
-            gtk_widget_add_css_class(GTK_WIDGET(il), "muted");
-            gtk_label_set_xalign(il, 0.0f);
-            gtk_box_append(ver_row, GTK_WIDGET(il));
-            GtkLabel *ll = GTK_LABEL(gtk_label_new(latest));
-            gtk_widget_add_css_class(GTK_WIDGET(ll), "warning");
-            gtk_label_set_xalign(ll, 0.0f);
-            gtk_box_append(ver_row, GTK_WIDGET(ll));
+            GtkLabel *old_ver = GTK_LABEL(gtk_label_new(app->version ?: "?"));
+            gtk_widget_add_css_class(GTK_WIDGET(old_ver), "version-old");
+            gtk_label_set_xalign(old_ver, 0.0f);
+            gtk_box_append(ver_row, GTK_WIDGET(old_ver));
+
+            GtkLabel *arrow = GTK_LABEL(gtk_label_new("→"));
+            gtk_widget_add_css_class(GTK_WIDGET(arrow), "version-arrow");
+            gtk_box_append(ver_row, GTK_WIDGET(arrow));
+
+            GtkLabel *new_ver = GTK_LABEL(gtk_label_new(app->latest_version));
+            gtk_widget_add_css_class(GTK_WIDGET(new_ver), "version-new");
+            gtk_label_set_xalign(new_ver, 0.0f);
+            gtk_box_append(ver_row, GTK_WIDGET(new_ver));
         } else {
             char ver_str[128];
-            snprintf(ver_str, sizeof(ver_str), "Version: %s", app->version ?: "?");
+            snprintf(ver_str, sizeof(ver_str), "v%s", app->version ?: "?");
             GtkLabel *vl = GTK_LABEL(gtk_label_new(ver_str));
             gtk_widget_add_css_class(GTK_WIDGET(vl), "muted");
             gtk_label_set_xalign(vl, 0.0f);
             gtk_box_append(ver_row, GTK_WIDGET(vl));
         }
+
         gtk_box_append(info, GTK_WIDGET(ver_row));
         gtk_box_append(row_box, GTK_WIDGET(info));
 
@@ -156,8 +199,8 @@ PageUpdates *page_updates_new(void) {
     /* Header */
     GtkBox *header = GTK_BOX(gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 12));
 
-    GtkLabel *title = GTK_LABEL(gtk_label_new(NULL));
-    gtk_label_set_markup(title, "<span size='x-large'><b>Updates</b></span>");
+    GtkLabel *title = GTK_LABEL(gtk_label_new("Updates"));
+    gtk_widget_add_css_class(GTK_WIDGET(title), "page-title");
     gtk_label_set_xalign(title, 0.0f);
     gtk_widget_set_hexpand(GTK_WIDGET(title), TRUE);
     gtk_box_append(header, GTK_WIDGET(title));

@@ -12,11 +12,11 @@
 static const char *APP_CSS =
 
     /* ── window background ─────────────────── */
-    "window { background-color: #f0f2f7; }"
+    "window { background-color: #eef0f8; }"
 
     /* ── sidebar ───────────────────────────── */
     "box.sidebar {"
-    "  background-color: #16172b;"
+    "  background-color: #1a1c35;"
     "  border-right: 1px solid rgba(0,0,0,0.25);"
     "}"
     "box.sidebar > label {"
@@ -325,7 +325,70 @@ static const char *APP_CSS =
 
     /* ── uptime / sysinfo extras ─────────────── */
     ".uptime-val { font-size: 16px; font-weight: 600; }"
-    ".info-mono  { font-family: monospace; font-size: 11px; opacity: 0.60; }";
+    ".info-mono  { font-family: monospace; font-size: 11px; opacity: 0.60; }"
+
+    /* ── profile banner ─────────────────────── */
+    ".profile-banner {"
+    "  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);"
+    "  border-radius: 16px; padding: 28px 24px 24px 24px; margin-bottom: 4px;"
+    "}"
+    ".profile-avatar-lg {"
+    "  min-width: 72px; min-height: 72px; border-radius: 100px;"
+    "  font-size: 30px; font-weight: 800; color: white;"
+    "  background-color: rgba(255,255,255,0.22);"
+    "  margin-bottom: 12px;"
+    "}"
+    ".profile-login { font-size: 20px; font-weight: 800; color: white; }"
+    ".profile-name  { font-size: 13px; color: rgba(255,255,255,0.75); }"
+    ".profile-refresh-btn {"
+    "  background-color: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.25);"
+    "  border-radius: 9px; color: white; font-size: 12px; font-weight: 600;"
+    "  padding: 6px 14px;"
+    "}"
+    ".profile-refresh-btn:hover {"
+    "  background-color: rgba(255,255,255,0.25);"
+    "}"
+
+    /* ── settings cards ─────────────────────── */
+    ".settings-card {"
+    "  background-color: white; border-radius: 14px;"
+    "  border: 1px solid rgba(0,0,0,0.07);"
+    "  padding: 18px 20px; margin-bottom: 4px;"
+    "  box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.03);"
+    "}"
+    ".settings-section-title {"
+    "  font-size: 13px; font-weight: 700; letter-spacing: 0.01em;"
+    "  margin-bottom: 8px;"
+    "}"
+    ".info-box {"
+    "  background-color: rgba(99,102,241,0.06);"
+    "  border-radius: 10px; border-left: 3px solid #6366f1;"
+    "  padding: 10px 14px; margin-bottom: 4px;"
+    "  font-size: 12px; opacity: 0.80;"
+    "}"
+    "button.neutral-action {"
+    "  background-color: #f3f4f6; color: #374151;"
+    "  border: 1px solid rgba(0,0,0,0.10); border-radius: 9px;"
+    "  font-weight: 600; padding: 7px 16px;"
+    "}"
+    "button.neutral-action:hover {"
+    "  background-color: #e5e7eb;"
+    "}"
+
+    /* ── version comparison ─────────────────── */
+    ".version-old   { font-size: 12px; opacity: 0.50; text-decoration: line-through; }"
+    ".version-arrow { font-size: 13px; color: #6366f1; font-weight: 700; }"
+    ".version-new   { font-size: 12px; font-weight: 700; color: #15803d; }"
+
+    /* ── stat icon ──────────────────────────── */
+    ".stat-icon { font-size: 20px; opacity: 0.70; margin-bottom: 2px; }"
+
+    /* ── notice box ─────────────────────────── */
+    ".notice-box {"
+    "  background-color: #fef9c3; border-radius: 10px;"
+    "  border: 1px solid rgba(234,179,8,0.25);"
+    "  padding: 10px 14px; font-size: 12px; color: #854d0e;"
+    "}";
 
 AppWindow *app_window_new(GtkApplication *app) {
     GtkCssProvider *css = gtk_css_provider_new();
